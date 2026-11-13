@@ -1,0 +1,14 @@
+node_modules/
+.webpack/
+out/
+tmp/
+.npm-cache/
+.dsh-acl-recovery/
+.acl-probe/
+Typst.html
+Typst_files/
+测试项目 – Typst.html
+测试项目 – Typst_files/
+perf/
+# 软件运行时写入的项目状态（workspace.json 等，会被运行中的应用持续改写）
+**/.typstor/

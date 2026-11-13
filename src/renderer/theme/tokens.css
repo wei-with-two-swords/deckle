@@ -1,0 +1,499 @@
+:root {
+  color-scheme: light;
+
+  --action-primary: #007aff;
+  --action-primary-hover: #004dc6;
+  --action-primary-active: #00298c;
+  --action-primary-disabled: #007aff80;
+  --action-secondary-plain: #fdfdfd;
+  --action-secondary-shaded: #eff0f3;
+  --action-secondary-hover: #e4e5ea;
+  --action-secondary-active: #d7d9e0;
+  --action-brand: #00afc6;
+  --action-critical: #ea3e47;
+  --action-warning: #f88938;
+
+  --layer-1: #fdfdfd;
+  --layer-2: #eff0f3;
+  --layer-3: #e4e5ea;
+
+  --text-primary: #19181f;
+  --text-secondary: rgb(86 85 101);
+  --text-nav: #3b3a48;
+  --text-disabled: #19181f80;
+  --text-link: #007aff;
+  --text-critical: #b9312d;
+  --text-warning: #b14c00;
+  --text-inverted: #fdfdfd;
+  --toast-bg: #3b3a48;
+  --toast-text: #fdfdfd;
+  --scrollbar-thumb: #bdbfcc;
+  --scrollbar-thumb-hover: #8b8fa2;
+
+  --border-secondary: rgb(189 191 204);
+  --border-modal: #d7d9e0;
+  --border-input: #8b8fa2;
+  --border-focus: #007aff80;
+  --border-panel: none;
+  --border-toolbar: #d7d9e0;
+
+  --effect-shadow-1: 0 4px 12px #59556533;
+  --effect-shadow-page: 0 4px 12px #59556533;
+  --effect-shadow-modal: 0 0 12px #59556533, 0 8px 48px #5955654d;
+  --effect-shadow-menu:
+    0 0 0 1px #0000000d, 0 0 12px #5955651a, 0 2px 24px #59556533;
+
+  --editor-selection: #bdd4dbb3;
+  --editor-selection-blur: #d7d9e0;
+  --editor-active-line: #b6ebff44;
+  --editor-active-line-blur: #e5ecf04d;
+  --editor-gutter: #bdbfcc;
+  --editor-gutter-active: #b0b3c2;
+  --editor-caret: #007bff52;
+
+  --syntax-comment: #74747c;
+  --syntax-code: #6b6b6f;
+  --syntax-keyword: #d73948;
+  --syntax-number: #b60157;
+  --syntax-function: #4b69c6;
+  --syntax-string: #198810;
+  --syntax-list: #8b41b1;
+  --syntax-math: #1d6c76;
+
+  --font-ui: Inter, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  --font-mono:
+    'Cascadia Mono', 'Cascadia Code', Consolas, 'Microsoft YaHei Mono',
+    monospace;
+  --radius-panel: 6px;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --action-primary: #3da8ff;
+  --action-primary-hover: #6cbfff;
+  --action-primary-active: #1f7fd6;
+  --action-secondary-plain: #19181f;
+  --action-secondary-shaded: #2a2934;
+  --action-secondary-hover: #33323e;
+  --action-secondary-active: #444352;
+
+  --layer-1: #19181f;
+  --layer-2: #2a2934;
+  --layer-3: #3b3a48;
+
+  --text-primary: #fdfdfd;
+  --text-secondary: rgb(163 167 183);
+  --text-nav: #eff0f3;
+  --text-disabled: #fdfdfd80;
+  --text-link: #3da8ff;
+  --text-critical: #ffa49d;
+  --text-warning: #ffb27a;
+  --toast-bg: #eff0f3;
+  --toast-text: #19181f;
+  --scrollbar-thumb: #6b6a7a;
+  --scrollbar-thumb-hover: #8b8fa2;
+
+  --border-secondary: #3b3a48;
+  --border-modal: #2a2934;
+  --border-input: #565565;
+  --border-focus: #007aff80;
+  --border-toolbar: #4d4c5b;
+
+  --effect-shadow-1: none;
+  --effect-shadow-page: 0 4px 12px #e9e7ef33;
+  --effect-shadow-modal: none;
+  --effect-shadow-menu: none;
+
+  --editor-selection: #3b4345b3;
+  --editor-selection-blur: #33323e;
+  --editor-active-line: #44545a31;
+  --editor-active-line-blur: #33323e4d;
+  --editor-gutter: #3b3a48;
+  --editor-gutter-active: #475357;
+  --editor-caret: #3da8ff80;
+
+  --syntax-comment: #b0b3c2;
+  --syntax-code: #c9c7d4;
+  --syntax-keyword: #ffa49d;
+  --syntax-number: #ff7d79;
+  --syntax-function: #7cd5ff;
+  --syntax-string: #80f4b6;
+  --syntax-list: #caa8ff;
+  --syntax-math: #80f4b6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  background: var(--layer-2);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  user-select: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+.drag {
+  -webkit-app-region: drag;
+}
+
+::selection {
+  background: var(--editor-selection);
+}
+
+[data-tree-row]:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--border-focus);
+  outline: none;
+}
+
+.project-card {
+  width: 160px;
+  height: 230px;
+  box-sizing: border-box;
+  border: 1px solid var(--border-secondary);
+  border-radius: 6px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--layer-1);
+  color: var(--text-primary);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  outline: none;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+/* 与 .template-row:hover 同色同过渡；有封面缩略图时图片铺满卡片，
+   单改 background-color 会被盖住，这里叠一层同色半透明层把变化显出来 */
+.project-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: var(--action-secondary-hover);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.project-card:hover {
+  background-color: var(--action-secondary-hover);
+}
+
+.project-card:hover::before {
+  opacity: 0.55;
+}
+
+/* 无封面时的回退态：中性白底 + 大号次要色首字，与按钮/模板行同语言 */
+.project-card-initial {
+  position: relative;
+  z-index: 1;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.project-card:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+}
+
+.project-card-actions {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 8px 6px 12px;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.project-card-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  pointer-events: none;
+}
+
+.project-card:hover .project-card-actions,
+.project-card:focus-within .project-card-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 卡内操作按钮复用 .dashboard-icon-btn / .template-action 的按钮体系，
+   这里只覆盖尺寸以适配 160px 宽的卡片 */
+.project-card-actions button {
+  width: 32px;
+  height: 32px;
+  flex: none;
+}
+
+.project-list-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 24px;
+  align-items: center;
+  height: 40px;
+  padding: 0 8px;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-secondary);
+  transition: background-color 120ms ease;
+}
+
+.project-list-row:first-child {
+  border-top: 1px solid var(--border-secondary);
+}
+
+.project-list-row:hover {
+  background: var(--action-secondary-hover);
+}
+
+.project-list-row:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+}
+
+.dashboard-btn {
+  height: 30px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 6px;
+  background: var(--layer-1);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.dashboard-btn:hover {
+  background: var(--action-secondary-hover);
+}
+
+.dashboard-btn:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--border-focus);
+}
+
+.dashboard-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.dashboard-tile {
+  height: 56px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 6px;
+  background: var(--layer-1);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.dashboard-tile:hover {
+  background: var(--action-secondary-shaded);
+}
+
+.dashboard-tile:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--border-focus);
+}
+
+.dashboard-tile:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.dashboard-icon-btn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.dashboard-icon-btn:hover {
+  background: var(--action-secondary-hover);
+  color: var(--text-primary);
+}
+
+.dashboard-icon-btn:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--border-focus);
+}
+
+.dashboard-sheet {
+  box-shadow:
+    0 0 1px #0000001f,
+    0 6px 24px #5955652e;
+}
+
+:root[data-theme='dark'] .dashboard-sheet {
+  box-shadow:
+    0 0 1px #ffffff1f,
+    0 6px 24px #0000005c;
+}
+
+.template-row {
+  position: relative;
+  width: 100%;
+  height: 56px;
+  /* [data-template-list] 是纵向 flex 容器；不锁定收缩，行会被压到 2px
+     （自身 overflow:hidden 使 flex item 的自动最小高度变成 0） */
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border: 1px solid var(--border-secondary);
+  border-radius: 6px;
+  background: var(--layer-1);
+  overflow: hidden;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.template-row:hover {
+  background: var(--action-secondary-hover);
+}
+
+.template-row-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  padding: 0 12px;
+}
+
+.template-actions {
+  position: absolute;
+  top: 0;
+  right: 8px;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.template-row:hover .template-actions,
+.template-row:focus-within .template-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.template-action {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 1px solid var(--border-secondary);
+  border-radius: 4px;
+  background: var(--layer-1);
+  color: var(--text-secondary);
+}
+
+.template-action:hover {
+  background: var(--action-secondary-hover);
+  color: var(--text-primary);
+}
+
+.template-action-danger:hover {
+  border-color: var(--action-critical);
+  background: var(--action-critical);
+  color: #ffffff;
+}
+
+@keyframes typstor-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: typstor-spin 1s linear infinite;
+}
