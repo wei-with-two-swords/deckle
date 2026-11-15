@@ -1,5 +1,4 @@
 import { app, BrowserWindow, Menu } from 'electron';
-import started from 'electron-squirrel-startup';
 import { closeDb, initDb } from './db';
 import { registerIpcHandlers } from './ipc';
 import { registerProtocolHandler, registerScheme } from './protocol';
@@ -8,10 +7,6 @@ import { createMainWindow, getMainWindow } from './window';
 
 // 必须在 app ready 之前注册特权 scheme
 registerScheme();
-
-if (started) {
-  app.quit();
-}
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();

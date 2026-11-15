@@ -1,32 +1,39 @@
-﻿import { rules } from './webpack.rules.mjs';
+﻿import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import AssetRelocatorPatch from './scripts/webpack/AssetRelocatorPatch.mjs';
+import { rendererRules } from './webpack.rules.mjs';
 
-rules.push({
-  test: /\.css$/,
-  use: [{ loader: 'style-loader' }, { loader: 'css-loader' }],
-});
+const root = path.dirname(fileURLToPath(import.meta.url));
 
-// codemirror-lang-typst 的 wasm-pack 产物按 ESM 方式 import wasm 命名导出，
-// 需要 webpack 的 asyncWebAssembly；typst.ts 渲染器则要 URL（asset/resource）。
-rules.push({
-  test: /\.wasm$/,
-  include: /codemirror-lang-typst/,
-  type: 'webassembly/async',
-});
+/** 渲染器 bundle + index.html，输出到 .webpack/renderer。 */
+export default function rendererConfig({ mode = 'production' } = {}) {
+  const production = mode === 'production';
 
-rules.push({
-  test: /\.wasm$/,
-  exclude: /codemirror-lang-typst/,
-  type: 'asset/resource',
-});
-
-export default {
-  module: {
-    rules,
-  },
-  experiments: {
-    asyncWebAssembly: true,
-  },
-  resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx', '.json', '.wasm'],
-  },
-};
+  return {
+    mode,
+    target: 'web',
+    devtool: production ? false : 'eval-source-map',
+    entry: { main_window: path.resolve(root, 'src/renderer/index.tsx') },
+    output: {
+      path: path.resolve(root, '.webpack/renderer'),
+      filename: '[name]/index.js',
+      globalObject: 'self',
+    },
+    module: { rules: rendererRules },
+    experiments: { asyncWebAssembly: true },
+    resolve: {
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '.json', '.wasm'],
+    },
+    node: { __dirname: false, __filename: false },
+    plugins: [
+      new AssetRelocatorPatch(),
+      new HtmlWebpackPlugin({
+        title: 'Typstor',
+        template: path.resolve(root, 'src/renderer/index.html'),
+        filename: 'main_window/index.html',
+        chunks: ['main_window'],
+      }),
+    ],
+  };
+}

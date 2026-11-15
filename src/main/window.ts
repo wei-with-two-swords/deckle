@@ -1,10 +1,14 @@
-import { app, BrowserWindow, screen } from 'electron';
+import { BrowserWindow, screen } from 'electron';
 import path from 'node:path';
 import { readSettings, saveSettings } from './settings';
 import { appUrl } from './protocol';
 
-declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
-declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
+// 主进程 bundle 位于 .webpack/main，preload 位于 .webpack/renderer/main_window。
+// 开发态（electron .）与打包态（app.asar 内）都满足这一相对布局。
+const PRELOAD_PATH = path.resolve(
+  __dirname,
+  '../renderer/main_window/preload.cjs',
+);
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -50,10 +54,10 @@ export function createMainWindow(): BrowserWindow {
     backgroundColor: settings.theme === 'dark' ? '#2a2934' : '#eff0f3',
     show: false,
     webPreferences: {
-      preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-      // Forge 的 preload dev bundle 含 HMR 客户端，会 require('events')；
-      // 沙箱 preload 只允许 electron/timers/url，故 M1 先用 sandbox:false，
-      // 仍保持 contextIsolation + 禁用 nodeIntegration。
+      preload: PRELOAD_PATH,
+      // preload bundle 会 require('events') 等内建模块，沙箱 preload 只允许
+      // electron/timers/url，故保持 sandbox:false；仍启用 contextIsolation
+      // 并禁用 nodeIntegration。
       sandbox: false,
       contextIsolation: true,
       nodeIntegration: false,
@@ -116,8 +120,9 @@ export function createMainWindow(): BrowserWindow {
     event.preventDefault();
   });
 
-  const entry = app.isPackaged ? appUrl() : MAIN_WINDOW_WEBPACK_ENTRY;
-  void win.loadURL(entry);
+  // 开发与打包都走 typstor:// 自定义 scheme，由 protocol.ts 从
+  // .webpack/renderer 读取 HTML / JS / wasm，避免 file:// 的跨域限制。
+  void win.loadURL(appUrl());
 
   if (process.env.TYPSTOR_DEVTOOLS === '1') {
     win.webContents.openDevTools({ mode: 'detach' });
