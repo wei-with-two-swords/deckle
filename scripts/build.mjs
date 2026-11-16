@@ -5,12 +5,14 @@ import webpack from 'webpack';
 import mainConfig from '../webpack.main.config.mjs';
 import preloadConfig from '../webpack.preload.config.mjs';
 import rendererConfig from '../webpack.renderer.config.mjs';
+import utilityConfig from '../webpack.utility.config.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 export function createConfigs({ mode = 'production' } = {}) {
   return [
     ['main', mainConfig({ mode })],
+    ['utility', utilityConfig({ mode })],
     ['preload', preloadConfig({ mode })],
     ['renderer', rendererConfig({ mode })],
   ];
@@ -58,7 +60,7 @@ function runOnce(name, config) {
   });
 }
 
-/** 清空旧产物后依次编译三个 target（共用 .webpack/renderer，必须串行）。 */
+/** 清空旧产物后依次编译四个 target（共用 .webpack/renderer，必须串行）。 */
 export async function buildAll({ mode = 'production' } = {}) {
   await fs.rm(path.resolve(root, '.webpack'), { recursive: true, force: true });
   for (const [name, config] of createConfigs({ mode })) {

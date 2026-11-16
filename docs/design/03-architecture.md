@@ -1,6 +1,12 @@
 # Typstor 架构设计（v0.1）
 
-> 目标：在现有 Electron Forge + Webpack + React 仓库上演进，不换框架；编译在主进程，渲染在渲染进程，数据本地。
+> 目标：在现有 Electron Forge + Webpack + React 仓库上演进，不换框架；编译在独立子进程，渲染在渲染进程，数据本地。
+
+> **实现更新（2026-11-16）**：Typst 编译已迁入 `utilityProcess`（`src/main/compileWorker.ts`），
+> 主进程只做路径校验、消息路由与 PDF 落盘；编译请求 30s 超时后重启子进程，渲染层合并
+> 飞行中的重复请求。生产构建注入 CSP（放行 `blob:`/`data:` 与 `wasm-unsafe-eval`），
+> preload 已恢复 `sandbox:true`。下文 §7.1 / §7.4 / §7.5 中相关的
+> `sandbox:false`、CSP 待办与「编译在主进程」描述为 v0.1 设计基线，已被上述实现取代。
 
 ## 1. 总览
 

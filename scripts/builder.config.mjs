@@ -5,6 +5,8 @@
  *   app.asar
  *   ├── .webpack/main/index.cjs
  *   ├── .webpack/main/native_modules/*.node   → asarUnpack
+ *   ├── .webpack/utility/compile.cjs          → 编译子进程
+ *   ├── .webpack/utility/native_modules/*.node → asarUnpack
  *   ├── .webpack/renderer/**                  → typstor:// scheme 读取
  *   └── package.json
  *
@@ -24,7 +26,10 @@ export const builderConfig = {
   files: ['.webpack/**/*', 'package.json', '!**/*.map', '!node_modules/**/*'],
 
   asar: true,
-  asarUnpack: ['.webpack/main/native_modules/**/*'],
+  asarUnpack: [
+    '.webpack/main/native_modules/**/*',
+    '.webpack/utility/native_modules/**/*',
+  ],
   npmRebuild: false,
 
   // Electron 二进制走国内镜像；NSIS 工具包镜像由 scripts/dist.mjs 设置。

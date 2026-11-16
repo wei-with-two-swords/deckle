@@ -56,10 +56,9 @@ export function createMainWindow(): BrowserWindow {
     show: false,
     webPreferences: {
       preload: PRELOAD_PATH,
-      // preload bundle 会 require('events') 等内建模块，沙箱 preload 只允许
-      // electron/timers/url，故保持 sandbox:false；仍启用 contextIsolation
-      // 并禁用 nodeIntegration。
-      sandbox: false,
+      // preload bundle 只使用 electron 与 process.platform，均在沙箱 preload
+      // 的可用范围内；保持 contextIsolation 并禁用 nodeIntegration。
+      sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,
       spellcheck: false,

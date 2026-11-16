@@ -1,71 +1,93 @@
-import { existsSync, promises as fs } from 'node:fs';
+/**
+ * 编译入口（主进程侧）：只做路径校验和消息转发。
+ * 真正的 Typst 编译在 utilityProcess 的 compileWorker 里执行，
+ * 大文档输入时不会再阻塞主进程的 UI 与 IPC。
+ */
+import { existsSync } from 'node:fs';
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { NodeCompiler } from '@myriaddreamin/typst-ts-node-compiler';
+import { app, utilityProcess } from 'electron';
+import type { UtilityProcess } from 'electron';
 import type {
-  CompileDiagnostic,
   CompileResult,
   CompileShadow,
   ExportPdfResult,
 } from '../shared/types';
+import type {
+  CompileWorkerKind,
+  CompileWorkerRequest,
+  CompileWorkerResponse,
+} from '../shared/compileProtocol';
 import { AppError } from './errors';
 import { assertInside } from './projects';
 import { readSettings } from './settings';
-import { t } from './i18n';
+import { currentLocale, t } from './i18n';
 
-interface RawDiagnostic {
-  message?: string;
-  package?: string;
-  path?: string;
-  severity?: number | string;
-  range?: {
-    start?: { line?: number; character?: number };
-    end?: { line?: number; character?: number };
-  } | null;
+const COMPILE_TIMEOUT_MS = 30_000;
+
+interface PendingRequest {
+  resolve: (response: CompileWorkerResponse & { ok: true }) => void;
+  reject: (error: unknown) => void;
+  timer: ReturnType<typeof setTimeout>;
 }
 
-let compiler: NodeCompiler | null = null;
-let compilerRoot: string | null = null;
+let worker: UtilityProcess | null = null;
+let nextId = 1;
+const pending = new Map<number, PendingRequest>();
 
-function buildCompiler(projectPath: string): NodeCompiler {
-  const fontDirs = readSettings().fonts.extraDirs.filter((dir) => {
-    try {
-      return existsSync(dir);
-    } catch {
-      return false;
+function rejectAll(message: string): void {
+  for (const entry of pending.values()) {
+    clearTimeout(entry.timer);
+    entry.reject(new AppError('EINTERNAL', message));
+  }
+  pending.clear();
+}
+
+function killWorker(): void {
+  if (!worker) return;
+  const process = worker;
+  worker = null;
+  try {
+    process.kill();
+  } catch {
+    // 进程可能已经退出
+  }
+}
+
+function ensureWorker(): UtilityProcess {
+  if (worker) return worker;
+
+  const modulePath = path.resolve(
+    app.getAppPath(),
+    '.webpack/utility/compile.cjs',
+  );
+  const child = utilityProcess.fork(modulePath, [], {
+    serviceName: 'typst-compiler',
+    stdio: 'ignore',
+  });
+  worker = child;
+
+  child.on('message', (message: CompileWorkerResponse) => {
+    if (!message || typeof message.id !== 'number') return;
+    const entry = pending.get(message.id);
+    if (!entry) return;
+    pending.delete(message.id);
+    clearTimeout(entry.timer);
+    if (message.ok) {
+      entry.resolve(message);
+    } else {
+      entry.reject(new AppError(message.code, message.message));
     }
   });
 
-  return NodeCompiler.create({
-    workspace: projectPath,
-    ...(fontDirs.length > 0 ? { fontArgs: [{ fontPaths: fontDirs }] } : {}),
+  child.on('exit', (code) => {
+    worker = null;
+    if (pending.size > 0) {
+      rejectAll(t('编译进程已退出（退出码 {code}）', { code: String(code) }));
+    }
   });
-}
 
-function getCompiler(projectPath: string): NodeCompiler {
-  if (compiler && compilerRoot === projectPath) return compiler;
-  compiler = buildCompiler(projectPath);
-  compilerRoot = projectPath;
-  return compiler;
-}
-
-function toSeverity(value: number | string | undefined): number {
-  if (typeof value === 'number') return value;
-  if (value === 'warning') return 2;
-  if (value === 'error') return 1;
-  return 1;
-}
-
-function convertDiagnostics(raw: unknown): CompileDiagnostic[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.map((item: RawDiagnostic) => ({
-    message: String(item.message ?? t('未知错误')),
-    path: String(item.path ?? ''),
-    severity: toSeverity(item.severity),
-    startLine: Math.max(0, Number(item.range?.start?.line ?? 0)),
-    startColumn: Math.max(0, Number(item.range?.start?.character ?? 0)),
-    endLine: Math.max(0, Number(item.range?.end?.line ?? 0)),
-    endColumn: Math.max(0, Number(item.range?.end?.character ?? 0)),
-  }));
+  return child;
 }
 
 function resolveMain(projectPath: string, mainFile: string): string {
@@ -75,22 +97,14 @@ function resolveMain(projectPath: string, mainFile: string): string {
   return abs;
 }
 
-/**
- * 每次编译前重置 shadow：编译器实例是按项目缓存复用的，若不清空，
- * 上一次注入的章节实时内容会一直残留，导致外部文件变更/自动保存读不到新内容。
- * 主文件始终映射到它自己的路径，其余编辑中的章节按各自真实路径注入，
- * 这样编译与诊断都以整个项目为根，不随「当前打开哪个文件」而变。
- */
-function applyShadows(
-  instance: NodeCompiler,
+/** 路径校验必须留在主进程：子进程没有 allowedRoots 状态。 */
+function resolveShadows(
   projectPath: string,
   mainPath: string,
-  content: string,
   shadows?: CompileShadow[],
-): void {
-  instance.resetShadow();
-  instance.mapShadow(mainPath, Buffer.from(content, 'utf8'));
-  if (!Array.isArray(shadows)) return;
+): { path: string; content: string }[] {
+  if (!Array.isArray(shadows)) return [];
+  const result: { path: string; content: string }[] = [];
   for (const shadow of shadows) {
     if (
       !shadow ||
@@ -102,51 +116,72 @@ function applyShadows(
     const abs = path.resolve(projectPath, shadow.path);
     assertInside(abs);
     if (path.normalize(abs) === path.normalize(mainPath)) continue;
-    instance.mapShadow(abs, Buffer.from(shadow.content, 'utf8'));
+    result.push({ path: abs, content: shadow.content });
   }
+  return result;
 }
 
-export function compileProject(
+function buildRequest(
+  kind: CompileWorkerKind,
   projectPath: string,
   mainFile: string,
   content: string,
   shadows?: CompileShadow[],
-): CompileResult {
+): CompileWorkerRequest {
   const mainPath = resolveMain(projectPath, mainFile);
-  const instance = getCompiler(projectPath);
-
-  applyShadows(instance, projectPath, mainPath, content, shadows);
-
-  const startedAt = performance.now();
-  const compiled = instance.compile({ mainFilePath: mainPath });
-  const durationMs = Math.round(performance.now() - startedAt);
-
-  const diagnostics: CompileDiagnostic[] = [];
-
-  if (compiled.hasError()) {
-    const error = compiled.takeError();
-    if (error)
-      diagnostics.push(...convertDiagnostics(instance.fetchDiagnostics(error)));
-  }
-
-  const warnings = compiled.takeWarnings();
-  if (warnings) {
-    diagnostics.push(
-      ...convertDiagnostics(instance.fetchDiagnostics(warnings)),
-    );
-  }
-
-  const document = compiled.result;
-  const vector = document
-    ? new Uint8Array(instance.vector(document))
-    : new Uint8Array(0);
-
+  const fontDirs = readSettings().fonts.extraDirs.filter((dir) => {
+    try {
+      return existsSync(dir);
+    } catch {
+      return false;
+    }
+  });
   return {
-    vector,
-    pageCount: document?.numOfPages ?? 0,
-    durationMs,
-    diagnostics,
+    id: nextId++,
+    kind,
+    projectPath,
+    mainPath,
+    content,
+    shadows: resolveShadows(projectPath, mainPath, shadows),
+    fontDirs,
+    locale: currentLocale(),
   };
+}
+
+function send(
+  request: CompileWorkerRequest,
+): Promise<CompileWorkerResponse & { ok: true }> {
+  const child = ensureWorker();
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pending.delete(request.id);
+      reject(new AppError('EINTERNAL', t('编译超时，正在重启编译进程')));
+      killWorker();
+    }, COMPILE_TIMEOUT_MS);
+    pending.set(request.id, { resolve, reject, timer });
+    try {
+      child.postMessage(request);
+    } catch (error) {
+      pending.delete(request.id);
+      clearTimeout(timer);
+      reject(error);
+    }
+  });
+}
+
+export async function compileProject(
+  projectPath: string,
+  mainFile: string,
+  content: string,
+  shadows?: CompileShadow[],
+): Promise<CompileResult> {
+  const response = await send(
+    buildRequest('compile', projectPath, mainFile, content, shadows),
+  );
+  if (response.kind !== 'compile') {
+    throw new AppError('EINTERNAL', t('编译响应类型错误'));
+  }
+  return response.result;
 }
 
 export async function exportProjectPdf(
@@ -156,27 +191,18 @@ export async function exportProjectPdf(
   targetPath: string,
   shadows?: CompileShadow[],
 ): Promise<ExportPdfResult> {
-  const mainPath = resolveMain(projectPath, mainFile);
-  const instance = getCompiler(projectPath);
-  applyShadows(instance, projectPath, mainPath, content, shadows);
-
-  const compiled = instance.compile({ mainFilePath: mainPath });
-  if (compiled.hasError()) {
-    const error = compiled.takeError();
-    const diagnostics = error
-      ? convertDiagnostics(instance.fetchDiagnostics(error))
-      : [];
-    const message =
-      diagnostics[0]?.message ?? t('文档存在编译错误，无法导出 PDF');
-    throw new AppError('EINVAL', message);
+  const response = await send(
+    buildRequest('pdf', projectPath, mainFile, content, shadows),
+  );
+  if (response.kind !== 'pdf') {
+    throw new AppError('EINTERNAL', t('导出响应类型错误'));
   }
-
-  const document = compiled.result;
-  if (!document) {
-    throw new AppError('EINVAL', t('文档没有可用页面'));
-  }
-
-  const buffer = instance.pdf(document);
-  await fs.writeFile(targetPath, buffer);
+  await fs.writeFile(targetPath, response.pdf);
   return { path: targetPath };
+}
+
+/** 退出应用时结束子进程；待处理请求收到明确的失败结果。 */
+export function shutdownCompileWorker(): void {
+  rejectAll(t('应用正在退出，编译已取消'));
+  killWorker();
 }

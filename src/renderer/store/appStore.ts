@@ -73,6 +73,9 @@ let compileTimer: ReturnType<typeof setTimeout> | null = null;
 let snapshotTimer: ReturnType<typeof setTimeout> | null = null;
 let wordCountTimer: ReturnType<typeof setTimeout> | null = null;
 let compileSeq = 0;
+/** 编译在飞行中时只保留最新请求，避免连续输入把子进程排满。 */
+let compileInFlight = false;
+let compilePending = false;
 /** 正在写入的内容：区分自己的写入回声与外部程序修改。 */
 const pendingWrites = new PendingWrites();
 /** 正在进行的写盘操作：关闭/切项目时要等它结束，不能只靠 saveState 判断。 */
@@ -1407,6 +1410,11 @@ export const useAppStore = create<AppState>((set, get) => {
     },
 
     async compileNow() {
+      if (compileInFlight) {
+        compilePending = true;
+        return;
+      }
+      compileInFlight = true;
       const { project, doc } = get();
       if (!project || !doc) {
         compileSeq += 1;
@@ -1466,6 +1474,13 @@ export const useAppStore = create<AppState>((set, get) => {
             },
           ],
         });
+      } finally {
+        compileInFlight = false;
+        if (compilePending) {
+          compilePending = false;
+          // 上一次编译期间又发生了编辑：用最新内容补一次，旧结果已被 seq 丢弃。
+          void get().compileNow();
+        }
       }
     },
 

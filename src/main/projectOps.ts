@@ -32,7 +32,7 @@ export async function projectThumbnail(
   const { config, mainPath } = await describeProject(projectPath);
   const raw = await fs.readFile(mainPath, 'utf8').catch(() => null);
   if (raw == null) return null;
-  const result = compileProject(
+  const result = await compileProject(
     projectPath,
     config.mainFile,
     raw.replace(/^\uFEFF/, ''),

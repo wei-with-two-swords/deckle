@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Menu } from 'electron';
 import { closeDb, initDb } from './db';
+import { shutdownCompileWorker } from './compile';
 import { registerIpcHandlers } from './ipc';
 import { registerProtocolHandler, registerScheme } from './protocol';
 import { attachPerfProbe, attachSmoke, prepareSmokeProject } from './smoke';
@@ -49,6 +50,7 @@ app.whenReady().then(async () => {
 });
 
 app.on('before-quit', () => {
+  shutdownCompileWorker();
   closeDb();
 });
 
