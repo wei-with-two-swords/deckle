@@ -12,7 +12,8 @@ import {
   RotateCw,
   Zap,
 } from 'lucide-react';
-import { CircularProgress, Tooltip } from '@mui/material';
+import { CircularProgress, Menu, MenuItem, Tooltip } from '@mui/material';
+import { joinRelative } from '../../shared/paths';
 import { useAppStore } from '../store/appStore';
 import { getTypstRenderer, useRendererSmoke } from '../lib/rendererSmoke';
 import {
@@ -221,6 +222,9 @@ export default function PreviewPane() {
   const [renderError, setRenderError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [jumpText, setJumpText] = useState<string | null>(null);
+  const [exportMenuAnchor, setExportMenuAnchor] = useState<HTMLElement | null>(
+    null,
+  );
   /** 缩放控件仅在 Ctrl/⌘+滚轮缩放时显隐：悬停时保持，离开后延时隐藏。 */
   const [showZoom, setShowZoom] = useState(false);
   const zoomHideTimer = useRef<number | null>(null);
@@ -618,6 +622,14 @@ export default function PreviewPane() {
   const errorCount = diagnostics.filter((item) => item.severity === 1).length;
   const compiling = compileStatus === 'compiling';
   const canExport = compileStatus === 'ready' && !!artifact;
+  /** 下拉菜单的「导出到项目目录」：跳过保存对话框，直接用主文件名落盘。 */
+  const exportToProject = useCallback(() => {
+    if (!project) return;
+    const base = (
+      project.config.mainFile.split(/[\\/]/).pop() ?? 'main'
+    ).replace(/\.[^.]+$/, '');
+    void exportPdf(joinRelative(project.path, `${base}.pdf`));
+  }, [project, exportPdf]);
   const totalPages = pageSizes.length;
   const atStart = currentPage <= 1;
   const atEnd = currentPage >= totalPages;
@@ -843,6 +855,7 @@ export default function PreviewPane() {
           }}
         >
           <div
+            aria-live="polite"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -909,8 +922,8 @@ export default function PreviewPane() {
             )}
           </div>
 
-          <Tooltip title={t('导出 PDF')}>
-            <span>
+          <div style={{ display: 'inline-flex' }}>
+            <Tooltip title={t('导出 PDF')}>
               <button
                 type="button"
                 aria-label={t('导出 PDF')}
@@ -920,12 +933,12 @@ export default function PreviewPane() {
                   height: 30,
                   padding: '0 8px',
                   border: '1px solid var(--border-secondary)',
-                  borderRadius: 6,
+                  borderRight: 'none',
+                  borderRadius: '6px 0 0 6px',
                   background: 'transparent',
                   color: 'var(--text-primary)',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 2,
                   opacity: canExport ? 1 : 0.5,
                   cursor: 'default',
                 }}
@@ -943,10 +956,69 @@ export default function PreviewPane() {
                 }}
               >
                 <Download size={15} strokeWidth={1.5} />
+              </button>
+            </Tooltip>
+            <Tooltip title={t('导出选项')}>
+              <button
+                type="button"
+                aria-label={t('导出选项')}
+                disabled={!canExport}
+                onClick={(event) => setExportMenuAnchor(event.currentTarget)}
+                style={{
+                  height: 30,
+                  width: 22,
+                  padding: 0,
+                  border: '1px solid var(--border-secondary)',
+                  borderRadius: '0 6px 6px 0',
+                  background: 'transparent',
+                  color: 'var(--text-primary)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: canExport ? 1 : 0.5,
+                  cursor: 'default',
+                }}
+                onMouseEnter={(event) => {
+                  if (!canExport) return;
+                  event.currentTarget.style.background =
+                    'var(--action-secondary-hover)';
+                  event.currentTarget.style.borderColor =
+                    'var(--border-toolbar)';
+                }}
+                onMouseLeave={(event) => {
+                  event.currentTarget.style.background = 'transparent';
+                  event.currentTarget.style.borderColor =
+                    'var(--border-secondary)';
+                }}
+              >
                 <ChevronDown size={12} strokeWidth={1.5} />
               </button>
-            </span>
-          </Tooltip>
+            </Tooltip>
+          </div>
+          <Menu
+            anchorEl={exportMenuAnchor}
+            open={exportMenuAnchor !== null}
+            onClose={() => setExportMenuAnchor(null)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <MenuItem
+              onClick={() => {
+                setExportMenuAnchor(null);
+                void exportPdf();
+              }}
+            >
+              {t('导出到…')}
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setExportMenuAnchor(null);
+                exportToProject();
+              }}
+            >
+              {t('导出到项目目录')}
+            </MenuItem>
+          </Menu>
         </div>
       </div>
 
@@ -1008,7 +1080,7 @@ export default function PreviewPane() {
               borderRadius: 1,
               display: 'grid',
               placeItems: 'center',
-              color: '#56556b',
+              color: 'var(--text-caption)',
               fontFamily: 'var(--font-ui)',
               textAlign: 'center',
               padding: 24,

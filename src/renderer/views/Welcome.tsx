@@ -94,7 +94,7 @@ function renderProjectCover(project: RecentProject): Promise<string | null> {
             canvas: context,
             pageOffset: 0,
             pixelPerPt: scale,
-            backgroundColor: '#ffffff',
+            backgroundColor: 'var(--paper-solid)',
           });
           return canvas.toDataURL('image/png');
         },

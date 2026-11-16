@@ -19,7 +19,7 @@ export default function Toast() {
         background: 'var(--toast-bg)',
         color: 'var(--toast-text)',
         fontSize: 13,
-        boxShadow: '0 4px 16px #00000033',
+        boxShadow: 'var(--effect-shadow-toast)',
         borderLeft:
           toast.kind === 'error' ? '3px solid var(--action-critical)' : 'none',
         whiteSpace: 'pre-wrap',

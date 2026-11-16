@@ -100,9 +100,9 @@ function RailButton({
               borderRadius: 7,
               background:
                 badge.tone === 'error'
-                  ? 'var(--action-critical, #d93025)'
-                  : 'var(--text-warning, #b14c00)',
-              color: '#fff',
+                  ? 'var(--action-critical)'
+                  : 'var(--text-warning)',
+              color: 'var(--on-critical)',
               fontSize: 9,
               fontWeight: 700,
               lineHeight: '14px',

@@ -27,6 +27,16 @@
   --text-inverted: #fdfdfd;
   --toast-bg: #3b3a48;
   --toast-text: #fdfdfd;
+  --effect-shadow-toast: 0 4px 16px #00000033;
+  --overlay-scrim: rgb(0 0 0 / 18%);
+  --on-critical: #ffffff;
+  --window-close-hover: #c42b1c;
+  --file-folder: #c09553;
+  --file-image: #a074c4;
+  --file-pdf: #d9534f;
+  --file-other: #8a8a8a;
+  --text-caption: #56556b;
+  --paper-solid: #ffffff;
   --scrollbar-thumb: #bdbfcc;
   --scrollbar-thumb-hover: #8b8fa2;
 
@@ -42,6 +52,7 @@
   --effect-shadow-modal: 0 0 12px #59556533, 0 8px 48px #5955654d;
   --effect-shadow-menu:
     0 0 0 1px #0000000d, 0 0 12px #5955651a, 0 2px 24px #59556533;
+  --effect-shadow-sheet: 0 0 1px #0000001f, 0 6px 24px #5955652e;
 
   --editor-selection: #bdd4dbb3;
   --editor-selection-blur: #d7d9e0;
@@ -104,6 +115,14 @@
   --effect-shadow-page: 0 4px 12px #e9e7ef33;
   --effect-shadow-modal: none;
   --effect-shadow-menu: none;
+  --effect-shadow-toast: 0 4px 16px #00000066;
+  --effect-shadow-sheet: 0 0 1px #ffffff1f, 0 6px 24px #0000005c;
+  --overlay-scrim: rgb(0 0 0 / 45%);
+  --file-folder: #d4a86a;
+  --file-image: #c9a7e3;
+  --file-pdf: #f47c78;
+  --file-other: #a9a8b8;
+  --text-caption: #b0b3c2;
 
   --editor-selection: #3b4345b3;
   --editor-selection-blur: #33323e;
@@ -401,15 +420,7 @@ button {
 }
 
 .dashboard-sheet {
-  box-shadow:
-    0 0 1px #0000001f,
-    0 6px 24px #5955652e;
-}
-
-:root[data-theme='dark'] .dashboard-sheet {
-  box-shadow:
-    0 0 1px #ffffff1f,
-    0 6px 24px #0000005c;
+  box-shadow: var(--effect-shadow-sheet);
 }
 
 .template-row {
@@ -485,7 +496,7 @@ button {
 .template-action-danger:hover {
   border-color: var(--action-critical);
   background: var(--action-critical);
-  color: #ffffff;
+  color: var(--on-critical);
 }
 
 @keyframes typstor-spin {

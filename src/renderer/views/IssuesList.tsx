@@ -62,9 +62,7 @@ function IssueRow({
         style={{
           flex: 'none',
           marginTop: 1,
-          color: isError
-            ? 'var(--text-critical)'
-            : 'var(--text-warning, #b14c00)',
+          color: isError ? 'var(--text-critical)' : 'var(--text-warning)',
         }}
       />
       <span style={{ minWidth: 0, flex: 1 }}>

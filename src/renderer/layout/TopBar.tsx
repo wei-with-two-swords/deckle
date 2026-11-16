@@ -362,7 +362,7 @@ export default function TopBar() {
                 togglePanel();
               }}
             >
-              {t('切换文件面板')}
+              {t('切换文件面板（Ctrl+B）')}
             </MenuItem>
           )}
           <MenuItem
@@ -578,6 +578,7 @@ export default function TopBar() {
         {view === 'project' && saveState !== 'idle' && (
           <span
             title={t('保存状态（Ctrl+S 立即保存）')}
+            aria-live="polite"
             style={{
               fontSize: 11,
               marginRight: 6,

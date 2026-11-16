@@ -1,6 +1,8 @@
-import { app, BrowserWindow, Menu } from 'electron';
+import { app, BrowserWindow, dialog, Menu } from 'electron';
 import { closeDb, initDb } from './db';
 import { shutdownCompileWorker } from './compile';
+import { currentLocale } from './i18n';
+import { DEFAULT_LOCALE, translate } from '../shared/i18n';
 import { registerIpcHandlers } from './ipc';
 import { registerProtocolHandler, registerScheme } from './protocol';
 import { attachPerfProbe, attachSmoke, prepareSmokeProject } from './smoke';
@@ -23,31 +25,59 @@ if (!app.requestSingleInstanceLock()) {
 
 app.setAppUserModelId('com.typstor.app');
 
-app.whenReady().then(async () => {
-  Menu.setApplicationMenu(null);
-
-  initDb();
-  registerProtocolHandler();
-  registerIpcHandlers();
-
-  if (process.env.TYPSTOR_SMOKE === '1') {
-    await prepareSmokeProject();
+/** 启动链任何一步失败都要留下可见诊断，而不是留下一个永远不出现的窗口。 */
+function reportStartupError(error: unknown): void {
+  console.error('[typstor] startup failed:', error);
+  const detail =
+    error instanceof Error ? (error.stack ?? error.message) : String(error);
+  let locale = DEFAULT_LOCALE;
+  try {
+    locale = currentLocale();
+  } catch {
+    // 数据库损坏时读不到语言设置，保留默认语言。
   }
-
-  const win = createMainWindow();
-
-  if (process.env.TYPSTOR_PERF_PROJECT) {
-    attachPerfProbe(win, process.env.TYPSTOR_PERF_PROJECT);
-  } else if (process.env.TYPSTOR_SMOKE === '1') {
-    attachSmoke(win);
+  try {
+    dialog.showErrorBox(
+      translate(locale, '启动失败'),
+      `${translate(locale, 'Typstor 启动时遇到错误，无法继续。')}\n\n${detail}`,
+    );
+  } finally {
+    app.quit();
   }
+}
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createMainWindow();
+app
+  .whenReady()
+  .then(async () => {
+    Menu.setApplicationMenu(null);
+
+    initDb();
+    registerProtocolHandler();
+    registerIpcHandlers();
+
+    if (process.env.TYPSTOR_SMOKE === '1') {
+      await prepareSmokeProject();
     }
-  });
-});
+
+    const win = createMainWindow();
+
+    if (process.env.TYPSTOR_PERF_PROJECT) {
+      attachPerfProbe(win, process.env.TYPSTOR_PERF_PROJECT);
+    } else if (process.env.TYPSTOR_SMOKE === '1') {
+      attachSmoke(win);
+    }
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        try {
+          createMainWindow();
+        } catch (error) {
+          reportStartupError(error);
+        }
+      }
+    });
+  })
+  .catch(reportStartupError);
 
 app.on('before-quit', () => {
   shutdownCompileWorker();

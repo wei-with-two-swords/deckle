@@ -92,7 +92,13 @@ function buildRows(
 
 function FileGlyph({ entry }: { entry: FileEntry }) {
   if (entry.kind === 'directory') {
-    return <Folder size={16} strokeWidth={1.5} color="#c09553" />;
+    return (
+      <Folder
+        size={16}
+        strokeWidth={1.5}
+        style={{ color: 'var(--file-folder)' }}
+      />
+    );
   }
   const lower = entry.name.toLowerCase();
   if (lower.endsWith('.typ')) {
@@ -116,15 +122,39 @@ function FileGlyph({ entry }: { entry: FileEntry }) {
     );
   }
   if (/\.(png|jpe?g|gif|webp|svg)$/.test(lower)) {
-    return <FileImage size={16} strokeWidth={1.5} color="#a074c4" />;
+    return (
+      <FileImage
+        size={16}
+        strokeWidth={1.5}
+        style={{ color: 'var(--file-image)' }}
+      />
+    );
   }
   if (/\.(pdf)$/.test(lower)) {
-    return <FileText size={16} strokeWidth={1.5} color="#d9534f" />;
+    return (
+      <FileText
+        size={16}
+        strokeWidth={1.5}
+        style={{ color: 'var(--file-pdf)' }}
+      />
+    );
   }
   if (/\.(bib|csv|json)$/.test(lower)) {
-    return <FileCode2 size={16} strokeWidth={1.5} color="#8a8a8a" />;
+    return (
+      <FileCode2
+        size={16}
+        strokeWidth={1.5}
+        style={{ color: 'var(--file-other)' }}
+      />
+    );
   }
-  return <FileText size={16} strokeWidth={1.5} color="#8a8a8a" />;
+  return (
+    <FileText
+      size={16}
+      strokeWidth={1.5}
+      style={{ color: 'var(--file-other)' }}
+    />
+  );
 }
 
 export default function FilesPanel() {
@@ -513,7 +543,7 @@ export default function FilesPanel() {
               border: 'none',
               borderRadius: 6,
               background: 'var(--action-primary)',
-              color: '#fff',
+              color: 'var(--on-critical)',
               fontSize: 13,
               fontWeight: 600,
               cursor: 'default',
@@ -767,7 +797,11 @@ export default function FilesPanel() {
                   )}
                 </span>
                 {isDir && isExpanded ? (
-                  <FolderOpen size={16} strokeWidth={1.5} color="#c09553" />
+                  <FolderOpen
+                    size={16}
+                    strokeWidth={1.5}
+                    style={{ color: 'var(--file-folder)' }}
+                  />
                 ) : (
                   <FileGlyph entry={entry} />
                 )}

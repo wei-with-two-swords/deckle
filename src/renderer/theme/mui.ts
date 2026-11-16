@@ -50,8 +50,8 @@ export function createAppTheme(mode: ThemeMode) {
         defaultProps: { arrow: false },
         styleOverrides: {
           tooltip: {
-            backgroundColor: '#3b3a48',
-            color: '#fdfdfd',
+            backgroundColor: 'var(--toast-bg)',
+            color: 'var(--toast-text)',
             fontSize: 11,
             borderRadius: 4,
             padding: '4px 8px',

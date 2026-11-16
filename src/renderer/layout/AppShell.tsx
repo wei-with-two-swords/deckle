@@ -40,6 +40,20 @@ export default function AppShell() {
         setQuickOpen((value) => !value);
         return;
       }
+      // Ctrl/Cmd+B：折叠/展开文件面板。编辑器内的 Mod-b 由 CodeMirror
+      // 处理为粗体并已 preventDefault，这里跳过，避免抢掉粗体快捷键。
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        !event.shiftKey &&
+        !event.altKey &&
+        event.key.toLowerCase() === 'b' &&
+        !event.defaultPrevented &&
+        project
+      ) {
+        event.preventDefault();
+        useAppStore.getState().togglePanel();
+        return;
+      }
       // Ctrl/Cmd+S：全局保存，无论焦点在编辑器、预览区还是文件面板都能触发；
       // 同时抑制浏览器「保存网页」对话框。保存成功后会按自动编译设置立即重编译。
       if (

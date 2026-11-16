@@ -33,10 +33,10 @@ export function ControlButton({
       }}
       onMouseEnter={(event) => {
         event.currentTarget.style.background = danger
-          ? '#c42b1c'
+          ? 'var(--window-close-hover)'
           : 'var(--action-secondary-hover)';
         event.currentTarget.style.color = danger
-          ? '#ffffff'
+          ? 'var(--on-critical)'
           : 'var(--text-primary)';
       }}
       onMouseLeave={(event) => {

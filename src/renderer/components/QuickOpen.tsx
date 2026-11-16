@@ -76,7 +76,7 @@ export default function QuickOpen({ open, onClose }: QuickOpenProps) {
         position: 'fixed',
         inset: 0,
         zIndex: 1400,
-        background: 'rgba(0,0,0,.18)',
+        background: 'var(--overlay-scrim)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'flex-start',

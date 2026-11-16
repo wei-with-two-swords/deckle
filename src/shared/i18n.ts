@@ -79,6 +79,8 @@ export const EN: Record<string, string> = {
   保存: 'Save',
   '保存中…': 'Saving…',
   保存失败: 'Save failed',
+  '保存失败，内容已存入恢复快照':
+    'Save failed; the content was stored in a recovery snapshot',
   '保存状态（Ctrl+S 立即保存）': 'Save status (Ctrl+S to save now)',
   全字匹配: 'Match whole word',
   全部: 'All',
@@ -109,6 +111,7 @@ export const EN: Record<string, string> = {
   切换到亮色: 'Switch to light',
   切换到暗色: 'Switch to dark',
   切换文件面板: 'Toggle file panel',
+  '切换文件面板（Ctrl+B）': 'Toggle file panel (Ctrl+B)',
   列表视图: 'List view',
   创建: 'Create',
   '创建中…': 'Creating…',
@@ -131,6 +134,7 @@ export const EN: Record<string, string> = {
   压缩包里没有可导入的文件: 'Archive contains no importable files',
   发现未保存的快照: 'Unsaved snapshots found',
   取消: 'Cancel',
+  只保留页面与文字设置: 'Only page and text settings are kept',
   '只允许打开 Typst 官方文档链接':
     'Only official Typst documentation links can be opened',
   只关闭窗口: 'Close window only',
@@ -168,6 +172,10 @@ export const EN: Record<string, string> = {
   '导入的 Typst 模板': 'Imported Typst template',
   导入目标不是文件夹: 'Import destination is not a folder',
   '导出 PDF': 'Export PDF',
+  '导出到…': 'Export to…',
+  导出到项目目录: 'Export to project folder',
+  导出选项: 'Export options',
+  导出响应类型错误: 'Unexpected export response type',
   导出压缩包: 'Export archive',
   '导出文件必须使用 .pdf 扩展名': 'Export file must use the .pdf extension',
   尚未添加目录: 'No folders added',
@@ -186,6 +194,7 @@ export const EN: Record<string, string> = {
   常规: 'General',
   应用设置: 'App settings',
   '应用设置…': 'App settings…',
+  '应用正在退出，编译已取消': 'App is quitting; compilation cancelled',
   引用标签: 'Insert reference',
   强调: 'Emphasis',
   当前文件: 'Current file',
@@ -325,6 +334,9 @@ export const EN: Record<string, string> = {
   '版本：': 'Version: ',
   用: 'Use ',
   界面语言: 'Language',
+  启动失败: 'Startup failed',
+  'Typstor 启动时遇到错误，无法继续。':
+    'Typstor could not start because of the following error.',
   '目标位置已存在同名文件夹：{path}':
     'A folder with the same name already exists at: {path}',
   '目的、原理、步骤、结果与讨论':
@@ -343,6 +355,9 @@ export const EN: Record<string, string> = {
   粗体: 'Bold',
   编译中: 'Compiling',
   编译失败: 'Compile failed',
+  '编译超时，正在重启编译进程': 'Compile timed out; restarting the compiler',
+  '编译进程已退出（退出码 {code}）': 'Compiler process exited (code {code})',
+  编译响应类型错误: 'Unexpected compiler response type',
   编辑: 'Edit',
   编辑后自动保存文件内容: 'Automatically save file content after editing',
   编辑器: 'Editor',

@@ -222,7 +222,7 @@ function validateName(name: string): string {
     throw new AppError('EINVAL', t('项目名不能为空'));
   }
   if (/[\\/:*?"<>|]/.test(trimmed)) {
-    throw new AppError('EINVAL', '项目名不能包含 \\ / : * ? " < > |');
+    throw new AppError('EINVAL', t('名称不能包含 \\ / : * ? " < > |'));
   }
   return trimmed;
 }
