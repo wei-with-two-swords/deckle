@@ -53,9 +53,9 @@ export const builderConfig = {
     // 关键：关闭一键安装，才出现「选择安装位置」等向导页面。
     oneClick: false,
     allowToChangeInstallationDirectory: true,
-    // 按当前用户安装，不请求 UAC、不写 Program Files。
+    // 按当前用户安装，不写 Program Files；允许写入受限时请求 UAC 提权。
     perMachine: false,
-    allowElevation: false,
+    allowElevation: true,
     createDesktopShortcut: true,
     createStartMenuShortcut: true,
     shortcutName: 'Typstor',
