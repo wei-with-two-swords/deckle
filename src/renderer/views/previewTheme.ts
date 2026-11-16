@@ -7,8 +7,11 @@ export interface PreviewColors {
   ink: string;
 }
 
+/** 项目卡片封面等非护眼场景的 canvas 底色。必须是具体色值，CSS 变量无效。 */
+export const RENDER_PAPER_WHITE = '#ffffff';
+
 const NORMAL: PreviewColors = {
-  paper: '#ffffff',
+  paper: RENDER_PAPER_WHITE,
   ink: '#8b8fa2',
 };
 

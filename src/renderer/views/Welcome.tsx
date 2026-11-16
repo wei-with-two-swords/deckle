@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import { getTypstRenderer, initRendererSmoke } from '../lib/rendererSmoke';
+import { RENDER_PAPER_WHITE } from './previewTheme';
 import type { RecentProject, TemplateInfo } from '../../shared/types';
 import { t } from '../lib/i18n';
 
@@ -94,7 +95,7 @@ function renderProjectCover(project: RecentProject): Promise<string | null> {
             canvas: context,
             pageOffset: 0,
             pixelPerPt: scale,
-            backgroundColor: 'var(--paper-solid)',
+            backgroundColor: RENDER_PAPER_WHITE,
           });
           return canvas.toDataURL('image/png');
         },
