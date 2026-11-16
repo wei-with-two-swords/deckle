@@ -6,8 +6,8 @@
 ;   默认实现在 PowerShell 可用时按「进程路径以 $INSTDIR 开头」检测，但在
 ;   PowerShell 被策略禁用时会回退到 tasklist /IM typstor.exe —— 全局按进程名
 ;   匹配，会命中任意目录下的同名副本（旧 Squirrel 版、绿色版、临时启动的实例）；
-;   而 perMachine:false + allowElevation:false 的安装器没有权限结束提权进程，
-;   重试失败后弹出「Typstor 无法关闭」，用户点取消即导致安装中断。
+;   而未提权的安装器无权结束提权进程，重试失败后弹出「Typstor 无法关闭」，
+;   用户点取消即导致安装中断。
 ;
 ; 本实现的规则：
 ;   1. 只处理可执行文件真正位于本次安装目录 $INSTDIR 内的 typstor.exe；

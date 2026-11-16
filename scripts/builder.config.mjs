@@ -53,9 +53,12 @@ export const builderConfig = {
     // 关键：关闭一键安装，才出现「选择安装位置」等向导页面。
     oneClick: false,
     allowToChangeInstallationDirectory: true,
-    // 按当前用户安装，不写 Program Files；允许写入受限时请求 UAC 提权。
-    perMachine: false,
-    allowElevation: true,
+    // 按所有用户安装（向导里的「安装模式」页会消失，默认目录为 Program Files，
+    // 仍可通过下面的目录页改到任意位置）。
+    // 关键：perMachine:true 才会把安装包 manifest 编译成 requireAdministrator，
+    // 双击时由系统弹出 UAC；否则是 asInvoker，普通权限运行，在部分机器上
+    // 会因安全策略无法写出 Uninstall typstor.exe 而安装失败。
+    perMachine: true,
     createDesktopShortcut: true,
     createStartMenuShortcut: true,
     shortcutName: 'Typstor',
