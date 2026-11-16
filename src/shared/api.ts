@@ -38,6 +38,8 @@ export interface TypstorApi {
     isMaximized(): Promise<Result<boolean>>;
     close(force?: boolean): Promise<Result<CloseResult>>;
     onMaximizedChanged(cb: (maximized: boolean) => void): () => void;
+    onCloseRequest(cb: () => void): () => void;
+    closeReady(): Promise<Result<void>>;
   };
   project: {
     create(req: CreateProjectRequest): Promise<Result<ProjectOpenResult>>;

@@ -2,6 +2,7 @@ import { BrowserWindow, screen } from 'electron';
 import path from 'node:path';
 import { readSettings, saveSettings } from './settings';
 import { appUrl } from './protocol';
+import { isCloseAllowed, requestWindowClose, resetCloseState } from './close';
 
 // 主进程 bundle 位于 .webpack/main，preload 位于 .webpack/renderer/main_window。
 // 开发态（electron .）与打包态（app.asar 内）都满足这一相对布局。
@@ -76,7 +77,13 @@ export function createMainWindow(): BrowserWindow {
   win.on('maximize', notifyMaximized);
   win.on('unmaximize', notifyMaximized);
 
-  win.on('close', () => {
+  win.on('close', (event) => {
+    if (!isCloseAllowed()) {
+      // 统一走关闭握手：询问关闭方式 → 等渲染层 flush → 再触发下一次 close。
+      event.preventDefault();
+      void requestWindowClose(win);
+      return;
+    }
     if (!win.isDestroyed()) {
       const normal = win.getNormalBounds();
       saveSettings({
@@ -93,6 +100,7 @@ export function createMainWindow(): BrowserWindow {
 
   win.on('closed', () => {
     mainWindow = null;
+    resetCloseState();
   });
 
   // Ctrl/⌘+滚轮缩放由预览面板自己处理（见 PreviewPane 的 wheel 监听），

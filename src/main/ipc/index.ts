@@ -53,6 +53,7 @@ import { listSystemFonts } from '../fonts';
 import { deleteTemplate, importTemplate, listTemplates } from '../templates';
 import { startProjectWatcher, stopProjectWatcher } from '../watcher';
 import { getMainWindow, setTitleFromProject } from '../window';
+import { acknowledgeCloseReady, requestWindowClose } from '../close';
 import { t } from '../i18n';
 
 function ok<T>(data: T): Ok<T> {
@@ -88,46 +89,6 @@ function handle<TArgs extends unknown[], TResult>(
   });
 }
 
-const CLOSE_ACTIONS = ['app', 'window'] as const;
-
-async function askCloseAction(
-  win: BrowserWindow | null,
-  { force = false }: { force?: boolean } = {},
-): Promise<'app' | 'window' | null> {
-  const { closeAction } = readSettings();
-  if (!force && (CLOSE_ACTIONS as readonly string[]).includes(closeAction)) {
-    return closeAction as 'app' | 'window';
-  }
-
-  const options = {
-    type: 'question' as const,
-    title: t('关闭'),
-    message: t('要关闭应用，还是只关闭当前窗口？'),
-    detail: t('关闭应用会退出 Typstor；只关闭窗口则保留应用在后台运行。'),
-    buttons: [t('关闭应用'), t('关闭窗口'), t('取消')],
-    defaultId: 0,
-    cancelId: 2,
-    noLink: true,
-    checkboxLabel: t('记住我的选择'),
-    checkboxChecked: false,
-  };
-
-  const { response, checkboxChecked } = win
-    ? await dialog.showMessageBox(win, options)
-    : await dialog.showMessageBox(options);
-
-  if (response === 2) return null;
-
-  const action = response === 0 ? 'app' : 'window';
-  if (checkboxChecked) saveSettings({ closeAction: action });
-
-  return action;
-}
-
-function closeWindow(win: BrowserWindow | null): void {
-  if (win && !win.isDestroyed()) win.close();
-}
-
 export function registerIpcHandlers(): void {
   handle(CH.WIN_MINIMIZE, (event) => {
     BrowserWindow.fromWebContents(event.sender)?.minimize();
@@ -148,19 +109,13 @@ export function registerIpcHandlers(): void {
     return BrowserWindow.fromWebContents(event.sender)?.isMaximized() ?? false;
   });
 
-  handle(CH.WIN_CLOSE, async (event, force: boolean) => {
+  handle(CH.WIN_CLOSE, (event, force: boolean) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    const action = await askCloseAction(win, { force });
+    return requestWindowClose(win, { force });
+  });
 
-    if (!action) return { closed: false, action: null };
-
-    if (action === 'app') {
-      setImmediate(() => app.quit());
-    } else {
-      setImmediate(() => closeWindow(win));
-    }
-
-    return { closed: true, action };
+  handle(CH.APP_CLOSE_READY, () => {
+    acknowledgeCloseReady();
   });
 
   handle(CH.PROJECT_CREATE, async (_event, request: CreateProjectRequest) => {

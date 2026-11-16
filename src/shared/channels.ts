@@ -5,6 +5,8 @@ export const CH = {
   WIN_IS_MAXIMIZED: 'win:isMaximized',
   WIN_CLOSE: 'win:close',
   WIN_MAXIMIZED_CHANGED: 'win:maximized-changed',
+  APP_CLOSE_REQUEST: 'app:close-request',
+  APP_CLOSE_READY: 'app:close-ready',
 
   PROJECT_CREATE: 'project:create',
   PROJECT_IMPORT: 'project:import',

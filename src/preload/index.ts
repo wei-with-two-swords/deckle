@@ -22,6 +22,12 @@ const api: TypstorApi & { platform: string } = {
       ipcRenderer.on(CH.WIN_MAXIMIZED_CHANGED, listener);
       return () => ipcRenderer.off(CH.WIN_MAXIMIZED_CHANGED, listener);
     },
+    onCloseRequest: (cb) => {
+      const listener = () => cb();
+      ipcRenderer.on(CH.APP_CLOSE_REQUEST, listener);
+      return () => ipcRenderer.off(CH.APP_CLOSE_REQUEST, listener);
+    },
+    closeReady: () => ipcRenderer.invoke(CH.APP_CLOSE_READY),
   },
   project: {
     create: (req: CreateProjectRequest) =>

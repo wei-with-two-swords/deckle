@@ -3,6 +3,7 @@ import { dirOf, joinRelative, samePath } from '../../shared/paths';
 import { allDirsExpanded, rootOnlyExpanded } from '../lib/treeExpand';
 import { isOutlineAllCollapsed } from '../lib/documentOutline';
 import { buildCompileInput } from '../lib/compileInput';
+import { classifyWatchEvent, PendingWrites } from '../lib/saveReconcile';
 import type {
   CompileDiagnostic,
   FileEntry,
@@ -72,6 +73,10 @@ let compileTimer: ReturnType<typeof setTimeout> | null = null;
 let snapshotTimer: ReturnType<typeof setTimeout> | null = null;
 let wordCountTimer: ReturnType<typeof setTimeout> | null = null;
 let compileSeq = 0;
+/** 正在写入的内容：区分自己的写入回声与外部程序修改。 */
+const pendingWrites = new PendingWrites();
+/** 正在进行的写盘操作：关闭/切项目时要等它结束，不能只靠 saveState 判断。 */
+let activeSave: Promise<boolean> | null = null;
 
 /** 字数统计要遍历项目文件，保存/文件变更时合并成一次，避免频繁扫描。 */
 function scheduleWordCount(): void {
@@ -96,7 +101,10 @@ export type WelcomeSortMode = 'created' | 'modified' | 'name';
 
 export interface FileConflict {
   path: string;
-  content: string;
+  /** 编辑器中的本地内容（覆盖保存时写入这一份）。 */
+  localContent: string;
+  /** 磁盘上的外部版本（重新载入时使用这一份）。 */
+  diskContent: string;
 }
 
 export interface OpenDocument {
@@ -199,7 +207,9 @@ export interface AppState {
   importProject(): Promise<boolean>;
   createProject(name: string): Promise<boolean>;
   updateProjectConfig(patch: ProjectConfigPatch): Promise<boolean>;
-  closeProject(): void;
+  closeProject(): Promise<void>;
+  /** 窗口关闭握手：清掉定时器、落盘文档与工作区状态。 */
+  flushForClose(): Promise<void>;
   loadDir(dir: string): Promise<void>;
   createEntry(
     parentDir: string,
@@ -312,6 +322,23 @@ export const useAppStore = create<AppState>((set, get) => {
       compileTimer = null;
       void get().compileNow();
     }, delay);
+  };
+
+  const clearTimers = () => {
+    for (const timer of [
+      workspaceTimer,
+      autosaveTimer,
+      compileTimer,
+      snapshotTimer,
+      wordCountTimer,
+    ]) {
+      if (timer) clearTimeout(timer);
+    }
+    workspaceTimer = null;
+    autosaveTimer = null;
+    compileTimer = null;
+    snapshotTimer = null;
+    wordCountTimer = null;
   };
 
   const applyProject = async (
@@ -625,38 +652,27 @@ export const useAppStore = create<AppState>((set, get) => {
       }
     },
 
-    closeProject() {
-      if (wordCountTimer) {
-        clearTimeout(wordCountTimer);
-        wordCountTimer = null;
-      }
+    async closeProject() {
+      clearTimers();
       const project = get().project;
       if (project) {
         void window.typstor.project
           .stopWatch(project.path)
           .catch(() => undefined);
       }
-      if (workspaceTimer) {
-        clearTimeout(workspaceTimer);
-        workspaceTimer = null;
-      }
-      if (autosaveTimer) {
-        clearTimeout(autosaveTimer);
-        autosaveTimer = null;
-      }
-      if (compileTimer) {
-        clearTimeout(compileTimer);
-        compileTimer = null;
-      }
-      if (snapshotTimer) {
-        clearTimeout(snapshotTimer);
-        snapshotTimer = null;
-      }
       compileSeq += 1;
       const wasReadOnly = get().readOnly;
       const doc = get().doc;
-      if (doc && doc.content !== doc.savedContent) {
-        void get().saveDoc();
+      // 必须等保存结束再清掉 doc：saveDoc 的成功回调依赖它更新 savedContent。
+      if (project && doc && !wasReadOnly && doc.content !== doc.savedContent) {
+        const saved = await get().saveDoc();
+        if (!saved) {
+          await window.typstor.snapshot
+            .save(project.path, doc.path, doc.content)
+            .catch(() => undefined);
+          get().showToast(t('保存失败，内容已存入恢复快照'), 'error');
+        }
+        clearTimers();
       }
       set({
         view: 'welcome',
@@ -680,6 +696,37 @@ export const useAppStore = create<AppState>((set, get) => {
       });
       void get().refreshRecent();
       if (!wasReadOnly) void get().patchSettings({ lastProject: null });
+    },
+
+    async flushForClose() {
+      clearTimers();
+      compileSeq += 1;
+      const { project, doc, conflict, readOnly } = get();
+      if (!project || readOnly) return;
+
+      if (doc && doc.content !== doc.savedContent) {
+        if (!conflict) {
+          await get().saveDoc();
+        } else {
+          // 有冲突时不擅自覆盖磁盘版本，至少把本地内容留进恢复快照。
+          await window.typstor.snapshot
+            .save(project.path, doc.path, doc.content)
+            .catch(() => undefined);
+        }
+      }
+
+      // saveDoc 可能重新挂上自动编译/字数定时器，落盘后统一清掉。
+      clearTimers();
+      // 保存期间又产生了编辑，或保存被冲突拦下：至少留一份恢复快照。
+      const after = get();
+      if (after.doc && after.doc.content !== after.doc.savedContent) {
+        await window.typstor.snapshot
+          .save(project.path, after.doc.path, after.doc.content)
+          .catch(() => undefined);
+      }
+      await window.typstor.project
+        .saveWorkspace(project.path, buildWorkspace())
+        .catch(() => undefined);
     },
 
     async loadDir(dir) {
@@ -1034,6 +1081,9 @@ export const useAppStore = create<AppState>((set, get) => {
     },
 
     async saveDoc() {
+      // 已有写盘在飞行时先等它结束，再按最新状态决定是否需要再写一次。
+      // 关闭握手正是依赖这一点：不能让最后一段编辑留在未完成的写入里。
+      if (activeSave) await activeSave;
       const state = get();
       const doc = state.doc;
       if (!doc) return false;
@@ -1052,40 +1102,64 @@ export const useAppStore = create<AppState>((set, get) => {
 
       set({ saveState: 'saving' });
       const content = doc.content;
+      pendingWrites.add(doc.path, content);
 
-      try {
-        const written = unwrap(
-          await window.typstor.fs.writeFile(doc.path, content, doc.mtimeMs),
-        );
-        set((current) => {
-          const active = current.doc;
-          if (!active || active.path !== doc.path) return {};
-          const next: OpenDocument = {
-            ...active,
-            savedContent: content,
-            mtimeMs: written.mtimeMs,
-          };
-          return {
-            doc: next,
-            saveState: next.content === next.savedContent ? 'saved' : 'dirty',
-          };
-        });
-        // 自动编译：保存（手动或自动）后立刻重编译，落实「文件保存自动编译」需求。
-        if (get().settings?.preview.autoCompile) armCompile(0);
-        scheduleWordCount();
-        if (get().saveState === 'dirty') scheduleAutosave();
-        return true;
-      } catch (error) {
-        if (error instanceof ApiError && error.code === 'ECONFLICT') {
-          set({
-            saveState: 'dirty',
-            conflict: { path: doc.path, content },
+      const write = (async () => {
+        try {
+          const written = unwrap(
+            await window.typstor.fs.writeFile(doc.path, content, doc.mtimeMs),
+          );
+          set((current) => {
+            const active = current.doc;
+            if (!active || active.path !== doc.path) return {};
+            const next: OpenDocument = {
+              ...active,
+              savedContent: content,
+              mtimeMs: written.mtimeMs,
+            };
+            return {
+              doc: next,
+              saveState: next.content === next.savedContent ? 'saved' : 'dirty',
+            };
           });
+          // 自动编译：保存（手动或自动）后立刻重编译，落实「文件保存自动编译」需求。
+          if (get().settings?.preview.autoCompile) armCompile(0);
+          scheduleWordCount();
+          if (get().saveState === 'dirty') scheduleAutosave();
+          return true;
+        } catch (error) {
+          if (error instanceof ApiError && error.code === 'ECONFLICT') {
+            let diskContent = content;
+            try {
+              diskContent = unwrap(
+                await window.typstor.fs.readFile(doc.path),
+              ).content;
+            } catch {
+              // 磁盘文件可能已被删除，保留写入时的内容作为占位版本。
+            }
+            set({
+              saveState: 'dirty',
+              conflict: {
+                path: doc.path,
+                localContent: get().doc?.content ?? content,
+                diskContent,
+              },
+            });
+            return false;
+          }
+          set({ saveState: 'error' });
+          get().showToast(errorText(error), 'error');
           return false;
+        } finally {
+          pendingWrites.remove(doc.path);
         }
-        set({ saveState: 'error' });
-        get().showToast(errorText(error), 'error');
-        return false;
+      })();
+
+      activeSave = write;
+      try {
+        return await write;
+      } finally {
+        if (activeSave === write) activeSave = null;
       }
     },
 
@@ -1096,6 +1170,17 @@ export const useAppStore = create<AppState>((set, get) => {
 
       if (action === 'cancel') {
         set({ conflict: null });
+        // 不自动重试：磁盘 mtime 仍是外部的，重试只会再次弹框。
+        // 但把本地未保存版本放进恢复快照，避免退出时丢内容。
+        if (get().doc?.content !== get().doc?.savedContent && state.project) {
+          void window.typstor.snapshot
+            .save(
+              state.project.path,
+              conflict.path,
+              get().doc?.content ?? conflict.localContent,
+            )
+            .catch(() => undefined);
+        }
         return;
       }
 
@@ -1103,15 +1188,25 @@ export const useAppStore = create<AppState>((set, get) => {
 
       if (action === 'reload') {
         try {
-          const data = unwrap(await window.typstor.fs.readFile(conflict.path));
+          // 尽量读取最新磁盘版本；读取失败时退回发现冲突时记下的版本。
+          let disk = {
+            path: conflict.path,
+            content: conflict.diskContent,
+            mtimeMs: get().doc?.mtimeMs ?? 0,
+          };
+          try {
+            disk = unwrap(await window.typstor.fs.readFile(conflict.path));
+          } catch {
+            // 文件可能刚被删除，仍按已记录的版本载入。
+          }
           set((current) => {
             if (!current.doc || current.doc.path !== conflict.path) return {};
             return {
               doc: {
-                path: data.path,
-                content: data.content,
-                savedContent: data.content,
-                mtimeMs: data.mtimeMs,
+                path: disk.path,
+                content: disk.content,
+                savedContent: disk.content,
+                mtimeMs: disk.mtimeMs,
                 revision: current.doc.revision + 1,
               },
               saveState: 'saved',
@@ -1128,7 +1223,7 @@ export const useAppStore = create<AppState>((set, get) => {
         const written = unwrap(
           await window.typstor.fs.writeFile(
             conflict.path,
-            conflict.content,
+            conflict.localContent,
             undefined,
             true,
           ),
@@ -1138,11 +1233,11 @@ export const useAppStore = create<AppState>((set, get) => {
           return {
             doc: {
               ...current.doc,
-              savedContent: conflict.content,
+              savedContent: conflict.localContent,
               mtimeMs: written.mtimeMs,
             },
             saveState:
-              current.doc.content === conflict.content ? 'saved' : 'dirty',
+              current.doc.content === conflict.localContent ? 'saved' : 'dirty',
           };
         });
       } catch (error) {
@@ -1169,28 +1264,42 @@ export const useAppStore = create<AppState>((set, get) => {
             const current = get().doc;
             if (!current || !samePath(current.path, absolute)) return;
 
-            if (disk.content === current.content) {
+            if (get().conflict && samePath(get().conflict!.path, absolute)) {
+              return;
+            }
+
+            const classification = classifyWatchEvent({
+              diskContent: disk.content,
+              editorContent: current.content,
+              savedContent: current.savedContent,
+              // 关键：保存请求已发出但 savedContent 尚未更新时，用「正在写入的内容」
+              // 识别自己的写入回声，避免用户在保存期间继续打字被误判为外部冲突。
+              pendingContent: pendingWrites.contentFor(absolute),
+            });
+
+            if (
+              classification === 'identical' ||
+              classification === 'own-write'
+            ) {
               if (disk.mtimeMs !== current.mtimeMs) {
                 set({ doc: { ...current, mtimeMs: disk.mtimeMs } });
               }
               return;
             }
 
-            // 磁盘内容等于「上次保存的内容」→ 这次 change 由本应用自身保存触发，
-            // 并非外部修改（即使保存后内存又产生了未保存编辑）。直接同步 mtime 并忽略，
-            // 否则会被误判为「文件已被外部修改」而在持续编辑时频繁弹窗。
-            if (disk.content === current.savedContent) {
-              if (disk.mtimeMs !== current.mtimeMs) {
-                set({ doc: { ...current, mtimeMs: disk.mtimeMs } });
-              }
+            if (classification === 'external-conflict') {
+              set({
+                saveState: 'dirty',
+                conflict: {
+                  path: absolute,
+                  localContent: current.content,
+                  diskContent: disk.content,
+                },
+              });
               return;
             }
 
-            if (get().saveState === 'dirty' || get().saveState === 'saving') {
-              set({ conflict: { path: absolute, content: disk.content } });
-              return;
-            }
-
+            // 外部修改且本地没有未保存编辑：静默重载。
             set({
               doc: {
                 ...current,
