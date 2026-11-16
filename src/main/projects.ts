@@ -2,6 +2,7 @@ import { BrowserWindow, dialog, shell } from 'electron';
 import type { OpenDialogOptions } from 'electron';
 import { constants, promises as fs } from 'node:fs';
 import path from 'node:path';
+import { atomicWriteText, WriteConflictError } from './atomicWrite';
 import {
   entryNameError,
   sanitizeEntryName,
@@ -544,18 +545,18 @@ export async function writeProjectFile(
     throw new AppError('EINVAL', t('内容超过 4 MB，已拒绝保存'));
   }
 
-  if (
-    !force &&
-    typeof expectedMtimeMs === 'number' &&
-    Number.isFinite(expectedMtimeMs) &&
-    Math.abs(before.mtimeMs - expectedMtimeMs) > 2
-  ) {
-    throw new AppError('ECONFLICT', t('文件已被外部修改，请先重新载入'));
+  try {
+    // 原子写入 + 同进程串行：校验与 rename 之间没有其它保存能插进来。
+    return await atomicWriteText(filePath, content, {
+      expectedMtimeMs,
+      force,
+    });
+  } catch (error) {
+    if (error instanceof WriteConflictError) {
+      throw new AppError('ECONFLICT', t('文件已被外部修改，请先重新载入'));
+    }
+    throw error;
   }
-
-  await fs.writeFile(filePath, content, 'utf8');
-  const after = await fs.stat(filePath);
-  return { path: filePath, mtimeMs: after.mtimeMs };
 }
 
 function validateEntryName(raw: string): string {

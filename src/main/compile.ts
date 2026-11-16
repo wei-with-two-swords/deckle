@@ -16,79 +16,25 @@ import type {
 import type {
   CompileWorkerKind,
   CompileWorkerRequest,
-  CompileWorkerResponse,
 } from '../shared/compileProtocol';
 import { AppError } from './errors';
 import { assertInside } from './projects';
 import { readSettings } from './settings';
 import { currentLocale, t } from './i18n';
+import { CompileSession } from './compileSession';
 
-const COMPILE_TIMEOUT_MS = 30_000;
+type CompileRequest = Omit<CompileWorkerRequest, 'id'>;
 
-interface PendingRequest {
-  resolve: (response: CompileWorkerResponse & { ok: true }) => void;
-  reject: (error: unknown) => void;
-  timer: ReturnType<typeof setTimeout>;
-}
-
-let worker: UtilityProcess | null = null;
-let nextId = 1;
-const pending = new Map<number, PendingRequest>();
-
-function rejectAll(message: string): void {
-  for (const entry of pending.values()) {
-    clearTimeout(entry.timer);
-    entry.reject(new AppError('EINTERNAL', message));
-  }
-  pending.clear();
-}
-
-function killWorker(): void {
-  if (!worker) return;
-  const process = worker;
-  worker = null;
-  try {
-    process.kill();
-  } catch {
-    // 进程可能已经退出
-  }
-}
-
-function ensureWorker(): UtilityProcess {
-  if (worker) return worker;
-
-  const modulePath = path.resolve(
-    app.getAppPath(),
-    '.webpack/utility/compile.cjs',
-  );
-  const child = utilityProcess.fork(modulePath, [], {
-    serviceName: 'typst-compiler',
-    stdio: 'ignore',
-  });
-  worker = child;
-
-  child.on('message', (message: CompileWorkerResponse) => {
-    if (!message || typeof message.id !== 'number') return;
-    const entry = pending.get(message.id);
-    if (!entry) return;
-    pending.delete(message.id);
-    clearTimeout(entry.timer);
-    if (message.ok) {
-      entry.resolve(message);
-    } else {
-      entry.reject(new AppError(message.code, message.message));
-    }
-  });
-
-  child.on('exit', (code) => {
-    worker = null;
-    if (pending.size > 0) {
-      rejectAll(t('编译进程已退出（退出码 {code}）', { code: String(code) }));
-    }
-  });
-
-  return child;
-}
+const session = new CompileSession({
+  fork: (modulePath) =>
+    utilityProcess.fork(modulePath, [], {
+      serviceName: 'typst-compiler',
+      stdio: 'ignore',
+    }) as UtilityProcess,
+  modulePath: () =>
+    path.resolve(app.getAppPath(), '.webpack/utility/compile.cjs'),
+  translate: t,
+});
 
 function resolveMain(projectPath: string, mainFile: string): string {
   assertInside(projectPath);
@@ -127,7 +73,7 @@ function buildRequest(
   mainFile: string,
   content: string,
   shadows?: CompileShadow[],
-): CompileWorkerRequest {
+): CompileRequest {
   const mainPath = resolveMain(projectPath, mainFile);
   const fontDirs = readSettings().fonts.extraDirs.filter((dir) => {
     try {
@@ -137,7 +83,6 @@ function buildRequest(
     }
   });
   return {
-    id: nextId++,
     kind,
     projectPath,
     mainPath,
@@ -148,34 +93,13 @@ function buildRequest(
   };
 }
 
-function send(
-  request: CompileWorkerRequest,
-): Promise<CompileWorkerResponse & { ok: true }> {
-  const child = ensureWorker();
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      pending.delete(request.id);
-      reject(new AppError('EINTERNAL', t('编译超时，正在重启编译进程')));
-      killWorker();
-    }, COMPILE_TIMEOUT_MS);
-    pending.set(request.id, { resolve, reject, timer });
-    try {
-      child.postMessage(request);
-    } catch (error) {
-      pending.delete(request.id);
-      clearTimeout(timer);
-      reject(error);
-    }
-  });
-}
-
 export async function compileProject(
   projectPath: string,
   mainFile: string,
   content: string,
   shadows?: CompileShadow[],
 ): Promise<CompileResult> {
-  const response = await send(
+  const response = await session.send(
     buildRequest('compile', projectPath, mainFile, content, shadows),
   );
   if (response.kind !== 'compile') {
@@ -191,7 +115,7 @@ export async function exportProjectPdf(
   targetPath: string,
   shadows?: CompileShadow[],
 ): Promise<ExportPdfResult> {
-  const response = await send(
+  const response = await session.send(
     buildRequest('pdf', projectPath, mainFile, content, shadows),
   );
   if (response.kind !== 'pdf') {
@@ -203,6 +127,5 @@ export async function exportProjectPdf(
 
 /** 退出应用时结束子进程；待处理请求收到明确的失败结果。 */
 export function shutdownCompileWorker(): void {
-  rejectAll(t('应用正在退出，编译已取消'));
-  killWorker();
+  session.shutdown();
 }

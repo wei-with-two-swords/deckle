@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { CircularProgress, Menu, MenuItem, Tooltip } from '@mui/material';
 import { joinRelative } from '../../shared/paths';
+import { currentRenderGeneration } from '../lib/renderLifecycle';
 import { useAppStore } from '../store/appStore';
 import { getTypstRenderer, useRendererSmoke } from '../lib/rendererSmoke';
 import {
@@ -398,14 +399,16 @@ export default function PreviewPane() {
     const renderer = getTypstRenderer();
     if (status !== 'ready' || !renderer) return;
     let cancelled = false;
+    const generation = currentRenderGeneration();
     void (async () => {
       try {
         await enqueue(() =>
           renderer.runWithSession(
             { format: 'vector', artifactContent: artifact },
             async (session) => {
+              // 切项目后旧 artifact 的 session 不再读取，及时退出。
+              if (cancelled || generation !== currentRenderGeneration()) return;
               const infos = session.retrievePagesInfo();
-              if (cancelled) return;
               setPageSizes(
                 infos.map((info) => ({
                   width: info.width,
@@ -441,6 +444,7 @@ export default function PreviewPane() {
     }
 
     let cancelled = false;
+    const generation = currentRenderGeneration();
     const savedScroll = scroller.scrollTop;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const pages: HTMLDivElement[] = [];
@@ -449,7 +453,14 @@ export default function PreviewPane() {
     setRenderError(null);
 
     const renderPage = async (index: number) => {
-      if (cancelled || rendered.has(index) || rendering.has(index)) return;
+      if (
+        cancelled ||
+        generation !== currentRenderGeneration() ||
+        rendered.has(index) ||
+        rendering.has(index)
+      ) {
+        return;
+      }
       const page = pages[index];
       const info = pageSizes[index];
       if (!page || !info) return;
@@ -472,7 +483,7 @@ export default function PreviewPane() {
           renderer.runWithSession(
             { format: 'vector', artifactContent: artifact },
             async (session) => {
-              if (cancelled) return;
+              if (cancelled || generation !== currentRenderGeneration()) return;
               await session.renderCanvas({
                 canvas: ctx,
                 pageOffset: index,

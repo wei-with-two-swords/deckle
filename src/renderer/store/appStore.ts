@@ -4,6 +4,7 @@ import { allDirsExpanded, rootOnlyExpanded } from '../lib/treeExpand';
 import { isOutlineAllCollapsed } from '../lib/documentOutline';
 import { buildCompileInput } from '../lib/compileInput';
 import { classifyWatchEvent, PendingWrites } from '../lib/saveReconcile';
+import { bumpRenderGeneration, clearCoverCache } from '../lib/renderLifecycle';
 import type {
   CompileDiagnostic,
   FileEntry,
@@ -349,6 +350,9 @@ export const useAppStore = create<AppState>((set, get) => {
     options: { readOnly?: boolean; displayName?: string } = {},
   ) => {
     applyTheme(get().theme);
+    // 可能从项目 A 直接切到项目 B（不经过 closeProject）：先让旧渲染代次失效。
+    bumpRenderGeneration();
+    clearCoverCache();
     const nextProject = options.displayName
       ? {
           ...result,
@@ -657,6 +661,9 @@ export const useAppStore = create<AppState>((set, get) => {
 
     async closeProject() {
       clearTimers();
+      // 让在途预览渲染任务与封面缓存一并失效，避免切项目后 native 资源累积。
+      bumpRenderGeneration();
+      clearCoverCache();
       const project = get().project;
       if (project) {
         void window.typstor.project
@@ -1415,22 +1422,23 @@ export const useAppStore = create<AppState>((set, get) => {
         return;
       }
       compileInFlight = true;
-      const { project, doc } = get();
-      if (!project || !doc) {
-        compileSeq += 1;
-        set({
-          compileStatus: 'idle',
-          artifact: null,
-          pageCount: 0,
-          diagnostics: [],
-          compileDurationMs: 0,
-        });
-        return;
-      }
-
-      const seq = ++compileSeq;
-      set({ compileStatus: 'compiling' });
+      let seq = compileSeq;
       try {
+        const { project, doc } = get();
+        if (!project || !doc) {
+          compileSeq += 1;
+          set({
+            compileStatus: 'idle',
+            artifact: null,
+            pageCount: 0,
+            diagnostics: [],
+            compileDurationMs: 0,
+          });
+          return;
+        }
+
+        seq = ++compileSeq;
+        set({ compileStatus: 'compiling' });
         const input = await projectCompileInput(project, doc);
         const result = unwrap(
           await window.typstor.compile.document(

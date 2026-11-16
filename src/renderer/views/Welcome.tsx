@@ -28,6 +28,7 @@ import {
 import { useAppStore } from '../store/appStore';
 import { getTypstRenderer, initRendererSmoke } from '../lib/rendererSmoke';
 import { RENDER_PAPER_WHITE } from './previewTheme';
+import { getCoverCache } from '../lib/renderLifecycle';
 import type { RecentProject, TemplateInfo } from '../../shared/types';
 import { t } from '../lib/i18n';
 
@@ -64,11 +65,11 @@ interface ProjectCardProps {
   onDelete: () => void;
 }
 
-const coverCache = new Map<string, Promise<string | null>>();
 let coverQueue: Promise<unknown> = Promise.resolve();
 
 function renderProjectCover(project: RecentProject): Promise<string | null> {
   const key = `${project.path}:${project.modifiedAt}`;
+  const coverCache = getCoverCache();
   const cached = coverCache.get(key);
   if (cached) return cached;
 

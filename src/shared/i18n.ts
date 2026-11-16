@@ -335,6 +335,15 @@ export const EN: Record<string, string> = {
   用: 'Use ',
   界面语言: 'Language',
   启动失败: 'Startup failed',
+  '原因：': 'Reason: ',
+  页面已崩溃: 'Page crashed',
+  '预览或编辑器意外退出。可以重新载入并尝试恢复未保存的内容。':
+    'The editor exited unexpectedly. Reload to try recovering unsaved content.',
+  重新载入: 'Reload',
+  页面无响应: 'Page unresponsive',
+  '界面暂时无响应，是否等待或重新载入？':
+    'The interface is not responding. Wait or reload?',
+  继续等待: 'Keep waiting',
   'Typstor 启动时遇到错误，无法继续。':
     'Typstor could not start because of the following error.',
   '目标位置已存在同名文件夹：{path}':

@@ -33,6 +33,8 @@ function getCompiler(projectPath: string, fontDirs: string[]): NodeCompiler {
   if (compiler && compilerRoot === projectPath && compilerFonts === fontKey) {
     return compiler;
   }
+  // 切项目或改字体目录时清掉 native 全局缓存，避免旧项目的文档/字体驻留。
+  compiler?.evictCache(0);
   compiler = NodeCompiler.create({
     workspace: projectPath,
     ...(fontDirs.length > 0 ? { fontArgs: [{ fontPaths: fontDirs }] } : {}),

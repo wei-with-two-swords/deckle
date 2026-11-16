@@ -3,6 +3,7 @@ import path from 'node:path';
 import { readSettings, saveSettings } from './settings';
 import { appUrl } from './protocol';
 import { isCloseAllowed, requestWindowClose, resetCloseState } from './close';
+import { attachCrashRecovery } from './crashRecovery';
 
 // 主进程 bundle 位于 .webpack/main，preload 位于 .webpack/renderer/main_window。
 // 开发态（electron .）与打包态（app.asar 内）都满足这一相对布局。
@@ -64,6 +65,8 @@ export function createMainWindow(): BrowserWindow {
       spellcheck: false,
     },
   });
+
+  attachCrashRecovery(win);
 
   win.once('ready-to-show', () => {
     if (settings.window.maximized) win.maximize();
