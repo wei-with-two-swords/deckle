@@ -61,6 +61,10 @@ export const builderConfig = {
     shortcutName: 'Typstor',
     // 简体中文安装界面（LCID 2052）。
     language: '2052',
+    // 覆盖默认的「关闭运行中应用」检测：只处理安装目录内的进程，
+    // 避免全局按 typstor.exe 进程名误伤旧 Squirrel 版 / 绿色版后弹「无法关闭」。
+    // 文件位于 buildResources（assets/installer.nsh）。
+    include: 'installer.nsh',
     // 生成 .blockmap，为以后接 electron-updater 的差分更新留通道。
     differentialPackage: true,
     // 卸载时保留 %APPDATA%\typstor 里的项目记录与设置。
