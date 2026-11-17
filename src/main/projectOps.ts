@@ -22,7 +22,12 @@ function shouldArchive(relative: string): boolean {
   const segments = normalized.split('/').filter(Boolean);
   if (segments.some((segment) => ARCHIVE_EXCLUDES.has(segment))) return false;
   // 工作区状态属于本机，不进入分享包；项目配置保留。
-  if (normalized === '.typstor/workspace.json') return false;
+  if (
+    normalized === '.deckle/workspace.json' ||
+    normalized === '.typstor/workspace.json'
+  ) {
+    return false;
+  }
   return true;
 }
 

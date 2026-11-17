@@ -7,6 +7,7 @@ const MAX_DEPTH = 12;
 const MAX_FILES = 2000;
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
 const SKIP_DIRS = new Set([
+  '.deckle',
   '.typstor',
   '.git',
   'node_modules',

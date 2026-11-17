@@ -76,22 +76,22 @@ export default function TypstEditor({
     const instance = new EditorView({ state, parent: host.current });
     view.current = instance;
     // 冒烟脚本用：读/写编辑器内容，验证自动保存闭环。
-    (window as unknown as { __typstorEditor?: EditorView }).__typstorEditor =
+    (window as unknown as { __deckleEditor?: EditorView }).__deckleEditor =
       instance;
     // 跨文件跳转用：标记当前编辑器实例正在编辑哪个文件。
     (
-      window as unknown as { __typstorEditorFilePath?: string }
-    ).__typstorEditorFilePath = filePath ?? undefined;
+      window as unknown as { __deckleEditorFilePath?: string }
+    ).__deckleEditorFilePath = filePath ?? undefined;
     instance.focus();
 
     return () => {
       if (cacheKey) rememberState(cacheKey, instance.state, wordWrap);
       instance.destroy();
       view.current = null;
-      delete (window as unknown as { __typstorEditor?: EditorView })
-        .__typstorEditor;
-      delete (window as unknown as { __typstorEditorFilePath?: string })
-        .__typstorEditorFilePath;
+      delete (window as unknown as { __deckleEditor?: EditorView })
+        .__deckleEditor;
+      delete (window as unknown as { __deckleEditorFilePath?: string })
+        .__deckleEditorFilePath;
     };
     // 文件切换由父组件通过 key 重建，这里只负责挂载与销毁。
     // eslint-disable-next-line react-hooks/exhaustive-deps

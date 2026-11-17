@@ -42,7 +42,7 @@ export default function TopBar() {
   const [maximized, setMaximized] = useState(false);
 
   useEffect(() => {
-    const api = window.typstor.window;
+    const api = window.deckle.window;
     void api.isMaximized().then((result) => {
       if (result.ok) setMaximized(result.data);
     });
@@ -59,7 +59,7 @@ export default function TopBar() {
   };
 
   const openTutorial = async () => {
-    const result = await window.typstor.app.openExternal(
+    const result = await window.deckle.app.openExternal(
       'https://typst.app/docs/tutorial/',
     );
     if (!result.ok) showToast(result.message, 'error');
@@ -109,7 +109,7 @@ export default function TopBar() {
       className="drag"
       onDoubleClick={(event) => {
         if (event.target === event.currentTarget) {
-          void window.typstor.window.toggleMaximize();
+          void window.deckle.window.toggleMaximize();
         }
       }}
       style={{
@@ -155,7 +155,7 @@ export default function TopBar() {
         )}
 
         <span
-          aria-label="Typstor"
+          aria-label="Deckle"
           style={{
             height: 24,
             display: 'flex',
@@ -168,7 +168,7 @@ export default function TopBar() {
             userSelect: 'none',
           }}
         >
-          Typstor
+          Deckle
         </span>
         {view === 'welcome' ? (
           <>
@@ -285,7 +285,7 @@ export default function TopBar() {
             disabled={view !== 'project'}
             onClick={() => {
               closeMenu();
-              window.dispatchEvent(new CustomEvent('typstor:quick-open'));
+              window.dispatchEvent(new CustomEvent('deckle:quick-open'));
             }}
           >
             {t('快速打开…')}
@@ -466,7 +466,7 @@ export default function TopBar() {
               setSettingsOpen(true, 'about');
             }}
           >
-            {t('关于 Typstor')}
+            {t('关于 Deckle')}
           </MenuItem>
         </Menu>
       </div>

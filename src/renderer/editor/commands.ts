@@ -6,7 +6,7 @@ import { t } from '../lib/i18n';
 /** 冒烟与工具栏共用的编辑器实例取用方式。 */
 export function getEditorView(): EditorView | null {
   return (
-    (window as unknown as { __typstorEditor?: EditorView }).__typstorEditor ??
+    (window as unknown as { __deckleEditor?: EditorView }).__deckleEditor ??
     null
   );
 }

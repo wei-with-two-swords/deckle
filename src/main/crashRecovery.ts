@@ -43,12 +43,12 @@ export function attachCrashRecovery(win: BrowserWindow): void {
   win.webContents.on('render-process-gone', (_event, details) => {
     // 正常退出（含我们主动关闭）不算崩溃。
     if (details.reason === 'clean-exit') return;
-    console.error('[typstor] renderer gone:', details);
+    console.error('[deckle] renderer gone:', details);
     unblockClose();
 
     const count = reloadCounts.get(win) ?? 0;
     if (count >= MAX_AUTO_PROMPTS) {
-      console.error('[typstor] renderer crashed repeatedly; closing window');
+      console.error('[deckle] renderer crashed repeatedly; closing window');
       win.destroy();
       return;
     }
@@ -73,7 +73,7 @@ export function attachCrashRecovery(win: BrowserWindow): void {
   });
 
   win.on('unresponsive', () => {
-    console.warn('[typstor] renderer unresponsive');
+    console.warn('[deckle] renderer unresponsive');
     const response = dialog.showMessageBoxSync(win, {
       type: 'warning',
       title: t('页面无响应'),

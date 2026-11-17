@@ -1,14 +1,28 @@
 {
-  "name": "typstor",
-  "productName": "typstor",
+  "name": "deckle",
+  "productName": "Deckle",
   "version": "1.0.0",
   "private": true,
-  "description": "桌面版 Typst 论文编辑器",
-  "keywords": [],
-  "license": "MIT",
+  "description": "Deckle — 桌面版 Typst 论文编辑器",
+  "keywords": [
+    "typst",
+    "editor",
+    "desktop",
+    "academic-writing",
+    "electron"
+  ],
+  "license": "Apache-2.0",
   "author": {
     "name": "wei",
     "email": "shuangjian_wei@163.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wei-with-two-swords/deckle.git"
+  },
+  "homepage": "https://github.com/wei-with-two-swords/deckle#readme",
+  "bugs": {
+    "url": "https://github.com/wei-with-two-swords/deckle/issues"
   },
   "main": ".webpack/main/index.cjs",
   "scripts": {

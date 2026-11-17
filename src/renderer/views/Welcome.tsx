@@ -75,7 +75,7 @@ function renderProjectCover(project: RecentProject): Promise<string | null> {
 
   const task = (coverQueue = coverQueue
     .then(async () => {
-      const response = await window.typstor.project.thumbnail(project.path);
+      const response = await window.deckle.project.thumbnail(project.path);
       if (!response.ok || !response.data) return null;
       await initRendererSmoke();
       const renderer = getTypstRenderer();

@@ -124,7 +124,7 @@ export default function IssuesList() {
     // 无路径（包内/合成诊断）或明显不是文件路径时不跳转，避免误开文件。
     if (!item.path || !/[\\/]/.test(item.path)) return;
     window.dispatchEvent(
-      new CustomEvent('typstor:goto-line', {
+      new CustomEvent('deckle:goto-line', {
         detail: {
           file: item.path,
           line: item.startLine,

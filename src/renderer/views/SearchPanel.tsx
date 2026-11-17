@@ -37,7 +37,7 @@ export function SearchPanel() {
     const seq = ++requestSeq.current;
     setLoading(true);
     const timer = window.setTimeout(() => {
-      void window.typstor.project
+      void window.deckle.project
         .search(project.path, trimmed, caseSensitive)
         .then((result) => {
           if (seq !== requestSeq.current) return;
@@ -188,7 +188,7 @@ export function SearchPanel() {
                   if (!opened) return;
                   window.setTimeout(() => {
                     window.dispatchEvent(
-                      new CustomEvent('typstor:goto-line', {
+                      new CustomEvent('deckle:goto-line', {
                         detail: { line: hit.line, column: hit.column },
                       }),
                     );

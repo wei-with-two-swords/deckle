@@ -127,7 +127,7 @@ export default function EditorPane() {
     if (fonts) return;
     if (!fontRequest.current) {
       fontRequest.current = (async () => {
-        const result = await window.typstor.fonts.list();
+        const result = await window.deckle.fonts.list();
         if (!result.ok) throw new Error(result.message);
         return result.data;
       })();

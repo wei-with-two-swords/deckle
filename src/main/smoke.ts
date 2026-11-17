@@ -8,8 +8,8 @@ import { removeRecentProject } from './db';
 import { saveSettings } from './settings';
 
 function smokeParent(): string {
-  return process.env.TYPSTOR_SMOKE_PARENT
-    ? path.resolve(process.env.TYPSTOR_SMOKE_PARENT)
+  return process.env.DECKLE_SMOKE_PARENT
+    ? path.resolve(process.env.DECKLE_SMOKE_PARENT)
     : path.join(app.getAppPath(), 'tmp');
 }
 
@@ -97,7 +97,7 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
         return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) };
       };
       return {
-        hasApi: !!window.typstor,
+        hasApi: !!window.deckle,
         theme: document.documentElement.dataset.theme,
         text: document.body.innerText.slice(0, 600),
         rail: rect(document.querySelector('nav[aria-label="主导航"]')),
@@ -142,7 +142,7 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
 
   const typed = await win.webContents.executeJavaScript(`
     (async () => {
-      const view = window.__typstorEditor;
+      const view = window.__deckleEditor;
       if (!view) return { hasView: false };
       const pill = () => [...document.querySelectorAll('header span')]
         .map((el) => el.textContent?.trim())
@@ -174,7 +174,7 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 40));
     await win.webContents.executeJavaScript(`
       (() => {
-        const view = window.__typstorEditor;
+        const view = window.__deckleEditor;
         if (view) {
           view.dispatch({
             changes: { from: view.state.doc.length, insert: '\\n// local change\\n' },
@@ -229,13 +229,13 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
 
   const toolbar = await win.webContents.executeJavaScript(`
     (async () => {
-      const view = window.__typstorEditor;
+      const view = window.__deckleEditor;
       if (!view) return { hasView: false };
       const button = document.querySelector('button[aria-label="粗体"]');
       if (!button) return { hasView: true, hasButton: false };
       const before = view.state.doc.toString().slice(0, 16);
       const full = view.state.doc.toString();
-      const target = '这是 Typstor 创建的示例文档';
+      const target = '这是 Deckle 创建的示例文档';
       const start = full.indexOf(target);
       if (start >= 0) {
         view.dispatch({ selection: { anchor: start, head: start + target.length } });
@@ -262,7 +262,7 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
 
   const syntax = await win.webContents.executeJavaScript(`
     (async () => {
-      const view = window.__typstorEditor;
+      const view = window.__deckleEditor;
       if (!view) return { hasView: false };
       const original = view.state.doc.toString();
       const fence = '\u0060\u0060\u0060';
@@ -343,7 +343,7 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
 
   const fonts = await win.webContents.executeJavaScript(`
     (async () => {
-      const view = window.__typstorEditor;
+      const view = window.__deckleEditor;
       if (!view) return { hasView: false };
       const original = view.state.doc.toString();
       const button = document.querySelector('button[aria-label="字体"]');
@@ -410,7 +410,7 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
 
   const lint = await win.webContents.executeJavaScript(`
     (async () => {
-      const view = window.__typstorEditor;
+      const view = window.__deckleEditor;
       if (!view) return { skip: true };
       const original = view.state.doc.toString();
       view.dispatch({
@@ -469,7 +469,7 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
     .pop();
   if (smokeDir) {
     const workspace = await fs.readFile(
-      path.join(smokeParent(), smokeDir, '.typstor', 'workspace.json'),
+      path.join(smokeParent(), smokeDir, '.deckle', 'workspace.json'),
       'utf8',
     );
     console.log('[smoke:workspace]', workspace);
@@ -695,7 +695,7 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
 
   const reopened = await win.webContents.executeJavaScript(`
     (async () => {
-      const recent = await window.typstor.project.recent();
+      const recent = await window.deckle.project.recent();
       const first = recent.ok ? recent.data[0] : null;
       if (!first) return { ok: false };
       const card = [...document.querySelectorAll('[data-project-path]')].find(
@@ -826,7 +826,7 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
       const target = figures[0] ?? headings[0];
       target?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await wait(350);
-      const editor = window.__typstorEditor;
+      const editor = window.__deckleEditor;
       let cursorLine = null;
       if (editor) {
         cursorLine = editor.state.doc.lineAt(editor.state.selection.main.head).number;
@@ -860,13 +860,13 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
       await wait(300);
       const input = document.querySelector('input[aria-label="搜索项目"]');
       if (!input) return { hasInput: false };
-      setValue(input, 'Typstor');
+      setValue(input, 'Deckle');
       await wait(1200);
       const hits = [...document.querySelectorAll('[data-search-path]')];
       const first = hits[0];
       first?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await wait(700);
-      const editor = window.__typstorEditor;
+      const editor = window.__deckleEditor;
       const cursorLine = editor
         ? editor.state.doc.lineAt(editor.state.selection.main.head).number
         : null;
@@ -886,14 +886,14 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
   const watch = await win.webContents.executeJavaScript(`
     (async () => {
       const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-      const store = window.__typstorStore;
+      const store = window.__deckleStore;
       const state = store.getState();
       if (!state.project || !state.doc) return { hasDoc: false };
       const before = state.doc.content;
       await state.saveDoc();
       await wait(300);
       const target = state.doc.path;
-      await window.typstor.fs.writeFile(
+      await window.deckle.fs.writeFile(
         target,
         before + '\\n\\n// external-watch-marker',
         undefined,
@@ -901,7 +901,7 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
       );
       await wait(1500);
       const reloaded = store.getState().doc?.content.includes('external-watch-marker') ?? false;
-      await window.typstor.fs.writeFile(target, before, undefined, true);
+      await window.deckle.fs.writeFile(target, before, undefined, true);
       await wait(1500);
       const restored = !(store.getState().doc?.content.includes('external-watch-marker') ?? true);
       return { hasDoc: true, reloaded, restored };
@@ -911,11 +911,11 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
 
   const exported = await win.webContents.executeJavaScript(`
     (async () => {
-      const state = window.__typstorStore.getState();
+      const state = window.__deckleStore.getState();
       if (!state.project || !state.doc) return { hasDoc: false };
       const separator = state.project.path.includes('\\\\') ? '\\\\' : '/';
       const target = state.project.path + separator + 'smoke-export.pdf';
-      const result = await window.typstor.exportPdf.run(
+      const result = await window.deckle.exportPdf.run(
         state.project.path,
         state.project.config.mainFile,
         state.doc.content,
@@ -945,19 +945,19 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
   const recovery = await win.webContents.executeJavaScript(`
     (async () => {
       const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-      const store = window.__typstorStore;
+      const store = window.__deckleStore;
       if (!store) return { hasStore: false };
       const state = store.getState();
       if (!state.project || !state.doc) return { hasStore: true, hasDoc: false };
       const marker = '// snapshot-restore-marker\\n= 快照恢复\\n\\n快照内容。';
-      await window.typstor.snapshot.save(state.project.path, state.doc.path, marker);
+      await window.deckle.snapshot.save(state.project.path, state.doc.path, marker);
       await state.checkRecovery();
       await wait(400);
       const rows = [...document.querySelectorAll('[data-recovery-file]')];
       const restoreButton = document.querySelector('[aria-label="恢复快照"]');
       restoreButton?.click();
       await wait(900);
-      const editor = window.__typstorEditor;
+      const editor = window.__deckleEditor;
       const content = editor ? editor.state.doc.toString() : '';
       const dialogAfter = document.querySelectorAll('[data-recovery-file]').length;
       return {
@@ -974,7 +974,7 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
 
 /** 仅用于 M1 冒烟：等页面稳定后打印 DOM 指标、验证节点/主题/设置。 */
 export function attachSmoke(win: BrowserWindow): void {
-  const logFile = process.env.TYPSTOR_SMOKE_LOG;
+  const logFile = process.env.DECKLE_SMOKE_LOG;
   if (logFile) {
     try {
       mkdirSync(path.dirname(logFile), { recursive: true });
@@ -1046,9 +1046,9 @@ export function attachPerfProbe(win: BrowserWindow, projectPath: string): void {
           };
 
           window.__perfStep = 'wait-store';
-          const bootstrap = await waitFor(() => window.__typstorStore, 30000);
+          const bootstrap = await waitFor(() => window.__deckleStore, 30000);
           if (bootstrap < 0) return { ok: false, reason: 'store not ready' };
-          const store = window.__typstorStore;
+          const store = window.__deckleStore;
 
           window.__perfStep = 'open';
           const t0 = performance.now();
@@ -1061,8 +1061,8 @@ export function attachPerfProbe(win: BrowserWindow, projectPath: string): void {
 
           const editorMs = await waitFor(
             () =>
-              window.__typstorEditor &&
-              window.__typstorEditor.state.doc.length > 100_000,
+              window.__deckleEditor &&
+              window.__deckleEditor.state.doc.length > 100_000,
             60000,
           );
           window.__perfStep = 'wait-compile';
@@ -1076,7 +1076,7 @@ export function attachPerfProbe(win: BrowserWindow, projectPath: string): void {
           const canvasMs = await waitFor(() => !!document.querySelector('.preview-page canvas'), 45000);
 
           const beforeVersion = store.getState().artifactVersion;
-          const view = window.__typstorEditor;
+          const view = window.__deckleEditor;
           let editCompileMs = -1;
           if (view) {
             view.dispatch({ changes: { from: 2000, insert: ' ' } });

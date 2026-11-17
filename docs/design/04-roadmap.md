@@ -1,4 +1,4 @@
-# Typstor 路线图与风险（v0.1）
+# Deckle 路线图与风险（v0.1）
 
 ## 1. 里程碑总览
 
@@ -87,7 +87,7 @@
 
 ### 任务拆解
 
-1. **协议冒烟**：`typstor://app/index.html` 能加载；页内 `fetch(wasmUrl)` 返回 200/`application/wasm`。
+1. **协议冒烟**：`deckle://app/index.html` 能加载；页内 `fetch(wasmUrl)` 返回 200/`application/wasm`。
 2. **窗口**：`frame:false`、`titleBarStyle`、`trafficLightPosition`；`win:*` IPC；拖拽区/双击最大化；任务栏图标。
 3. **类型层**：`src/shared/{types,channels,api}.ts`；preload 新 API；旧 `electronAPI` 过渡。
 4. **主题**：`tokens.css` + `tokens.ts` + `mui.ts`；`data-theme` 切换；系统主题监听（P1）。
@@ -108,15 +108,15 @@
 
 ### M1 实测结果（2026-11-10）
 
-- 启动：`TYPSTOR_SMOKE=1 npm start` 自动在 `tmp/smoke-*` 建项目并打开；主进程 73 KiB、preload 348 KiB、renderer dev bundle 8.29 MiB、WASM 950 KiB。
+- 启动：`DECKLE_SMOKE=1 npm start` 自动在 `tmp/smoke-*` 建项目并打开；主进程 73 KiB、preload 348 KiB、renderer dev bundle 8.29 MiB、WASM 950 KiB。
 - 布局（1400×900，内容区 1399×852）：rail 64×852；topbar 1335×40；文件面板 260×792（y=60）；编辑器 603×804；预览 448×804；三者底部对齐 852。
 - 文件树只有 `main.typ`；点击后 `aria-selected` 正确、编辑器占位切换；`workspace.json` 的 `openFile=main.typ` 防抖后落盘。
 - 两页模型：Dashboard 的 rail 只剩“应用设置”+字标，面包屑 `Dashboard`；项目页 rail 为文件/搜索/大纲/问题/项目设置，面包屑 `Dashboard › 项目名 › 文件`，返回箭头或点 `Dashboard` 回到首页并保存 workspace。
-- 设置分域：Dashboard 打开应用设置（外观/文件/关于）；项目页打开项目设置（项目名称、主文件、路径），通过 `project:updateConfig` 写回 `.typstor/project.json` 并刷新标题/面包屑；实测改名成功。
-- 主题经 View 菜单切换 light→dark，`--layer-2` 变 `#2a2934`，无白闪；设置弹窗可开/关；`window.typstor` 存在；WASM 渲染器状态 `ready`。
+- 设置分域：Dashboard 打开应用设置（外观/文件/关于）；项目页打开项目设置（项目名称、主文件、路径），通过 `project:updateConfig` 写回 `.deckle/project.json` 并刷新标题/面包屑；实测改名成功。
+- 主题经 View 菜单切换 light→dark，`--layer-2` 变 `#2a2934`，无白闪；设置弹窗可开/关；`window.deckle` 存在；WASM 渲染器状态 `ready`。
 - Dashboard 按 typst.app 保存页对齐（2026-11-10 追加）：搜索框 400×48、空白项目/打开文件夹瓦片、网格/列表切换、排序菜单、160×230 渐变卡与折角；rail 增加“帮助”；右侧快捷链接仅用系统浏览器打开 typst.app 官方页（`app:openExternal` 校验 https + 域名白名单）。截图：`docs/design/dashboard.png`。
 - 偏差：`webPreferences.sandbox` 由 `true` 改为 `false`——Forge dev 的 preload bundle 注入 webpack-dev-server/HMR，会 `require('events')`，沙箱 preload 不允许；保留 `contextIsolation:true` 与 `nodeIntegration:false`。打包阶段若 preload 不再含 HMR 客户端，再评估恢复 `sandbox:true`。
-- 冒烟代码收在 `src/main/smoke.ts`（`prepareSmokeProject`/`attachSmoke`），只在 `TYPSTOR_SMOKE=1` 时启用；M5 再迁移为 Playwright + `@electron/remote` 或 CDP。
+- 冒烟代码收在 `src/main/smoke.ts`（`prepareSmokeProject`/`attachSmoke`），只在 `DECKLE_SMOKE=1` 时启用；M5 再迁移为 Playwright + `@electron/remote` 或 CDP。
 - 遗留非致命警告：dev 无 CSP（打包前补）、typst-ts-renderer WASM `init` 旧参数警告（上游 0.7.0 行为，M3 接渲染时复核）。
 
 ## 4. M2 编辑器
@@ -136,7 +136,7 @@
 - `editor/setup.ts`：`Mod-b`/`Mod-i`/`Mod-u`/`Mod-Shift-1`/`Mod-Shift-m` 快捷键；工具栏十个按钮全部接线，“Ag”打开字体菜单（系统字体 + 内置字体，选择后写入 `#set text(font: …)`）。
 - 字体：`src/main/fonts.ts` 解析 TTF/OTF/TTC 的 name 表枚举 family（含 TTC 多 face、Windows/macOS/Linux 默认目录与设置里的额外目录），IPC `fonts:list`；`setDocumentFont` 优先替换已有 `#set text(font: …)`，否则插入文档开头。
 - `components/QuickOpen.tsx` + `AppShell`：`Ctrl/Cmd+P` 快速打开，递归过滤文件树，↑↓/Enter/Esc。
-- `layout/TopBar.tsx`：菜单顺序 Typstor / Project(Dashboard) / File / Edit / View / Help；File 含新建/打开/关闭/快速打开/设置，Edit 含撤销/重做/查找替换。
+- `layout/TopBar.tsx`：菜单顺序 Deckle / Project(Dashboard) / File / Edit / View / Help；File 含新建/打开/关闭/快速打开/设置，Edit 含撤销/重做/查找替换。
 - 文件操作：`fs:createEntry`、`fs:renameEntry`、`fs:deleteEntry`（删除走系统回收站）；面板头部新建文件/新建文件夹、右键菜单、F2 重命名、Delete 删除；重命名文件时若省略扩展名则保留原扩展名。
 - 冒烟：`[smoke:toolbar]` 粗体包裹、`[smoke:quickopen]` 1 个文件、`[smoke:fileops]` 创建/重命名均通过；typecheck/lint 通过。
 
@@ -148,7 +148,7 @@
 - `src/renderer/views/EditorPane.tsx`：有 `doc` 渲染编辑器，加载中 spinner，无文件空态。
 - 数据：`openFile` 读入 `FileContent`，`updateDoc` 标 dirty 并 800ms 自动保存，`saveDoc` 带 `expectedMtimeMs` 写入；`ECONFLICT` 置 `error` 并 toast（冲突对话框 P2）。
 - 构建：`codemirror-lang-typst` 的 wasm-pack 产物走 webpack `webassembly/async`（`webpack.renderer.config.mjs`），typst.ts 渲染器 wasm 仍走 `asset/resource`。
-- 冒烟：冒烟脚本通过 `window.__typstorEditor` 追加一行，验证 pill 从“未保存”→“已保存”，并读盘确认内容落盘。
+- 冒烟：冒烟脚本通过 `window.__deckleEditor` 追加一行，验证 pill 从“未保存”→“已保存”，并读盘确认内容落盘。
 
 ### 界面校准（2026-11-10，按用户 typst.app 项目页截图）
 
@@ -156,7 +156,7 @@
 - 文件面板标题改 `Files/Search/Outline/Issues`，头部 40px；操作图标改为 file+/folder+/更多/导入（M4 前禁用）；行尾加 eye 图标；选中 `--action-secondary-shaded` + 600。
 - 编辑工具栏去边框、扁平化，`Ag` + B/I/U/H1/列表/有序/Σ/代码/@ 十个按钮（第二片接命令）；不设评论。
 - 预览工具栏去边框，缩放组 + 适应宽度；`PX_PER_PT=1.28`，`ResizeObserver` + rAF 自动适应宽度，避免观察器循环；打开项目自动打开 `main.typ`。
-- 已用 `TYPSTOR_SMOKE=1` 复测：light 主题、zoom 52%、自动选中 main.typ、输入保存、项目设置改名、Dashboard 两页导航均通过；`docs/design/project-alignment.png` 为对齐后截图。
+- 已用 `DECKLE_SMOKE=1` 复测：light 主题、zoom 52%、自动选中 main.typ、输入保存、项目设置改名、Dashboard 两页导航均通过；`docs/design/project-alignment.png` 为对齐后截图。
 
 ### 范围
 
@@ -219,7 +219,7 @@
 
 - 主进程 `src/main/compile.ts`：`NodeCompiler` 按项目缓存、系统字体 + 设置字体目录、`mapShadow` 覆盖未保存内容、`hasError → takeError → fetchDiagnostics`、`vector()`；`compile:document` / `export:pdf`（保存对话框）。
 - 渲染进程：`runWithSession` + 逐页 `session.renderCanvas({ canvas: ctx, pageOffset: index, pixelPerPt: 1.28*zoom*dpr })`，模块级 `renderQueue` 串行；空 artifact 不再进入渲染（编译失败显示占位而不是崩溃）。
-- 预览：52% 适应宽度、缩放 50–400%、编译 spinner、错误计数、导出按钮；Issues 列表按 severity 着色，点击后打开文件并派发 `typstor:goto-line` 跳转行列。
+- 预览：52% 适应宽度、缩放 50–400%、编译 spinner、错误计数、导出按钮；Issues 列表按 severity 着色，点击后打开文件并派发 `deckle:goto-line` 跳转行列。
 - 实测：1 页中文模板，canvas 792×1120（52%、DPR 2），全页采样 `painted:1`；工具栏/保存/文件操作/两页导航等回归通过。
 
 ### 遗留
@@ -235,7 +235,7 @@
 > 状态：首片（大纲 + 项目搜索 + 快照恢复）与外部监听/导出增强已落地（2026-11-10）：大纲支持标题层级与“图 N / 表 N”分组；自动快照 3s 去抖、每文件保留 20 条；打开项目时对比磁盘内容，有差异弹“发现未保存的快照”对话框；chokidar 监听项目目录，干净自动重载、脏走冲突对话框、文件树随增删刷新；PDF 导出支持“在资源管理器中显示”。模板库已落地（2026-11-11）：`userData/templates` 磁盘存储、首次播种 4 个内置模板、导入 `.typ`/文件夹、从模板开始复制、更改模板、删除模板；Dashboard 改为 4×3 网格（搜索、导入模板、新建/打开、排序/视图、最近项目、模板清单）。最近项目卡显示主文件首页缩略图（vector → canvas，`path:modifiedAt` 缓存，失败回退渐变），hover 提供打开编辑、导出 PDF、导出压缩包、删除（回收站 + 二次确认）。待做：拖拽移动（P1）、欢迎页固定/丢失定位、导出标准选项（P1）。
 
 - 大纲：从当前文档解析 `= 标题` 层级（跳过代码围栏），面板点击跳转到对应行；`#figure(...)` 的图/表按 `caption` 分组（解析支持嵌套方括号、字符串、`kind: table`），行前显示 `Image`/`Table2` 图标与“图 1/表 1”编号。
-- 项目搜索：`project:search` 在主进程递归扫描 `.typ`（≤1MB、跳过 `.typstor/node_modules/.git/out/.webpack/tmp`，上限 200 条），返回相对路径与 0-based 行列；面板支持区分大小写、250ms 去抖，点击打开文件并跳转。
+- 项目搜索：`project:search` 在主进程递归扫描 `.typ`（≤1MB、跳过 `.deckle/node_modules/.git/out/.webpack/tmp`，上限 200 条），返回相对路径与 0-based 行列；面板支持区分大小写、250ms 去抖，点击打开文件并跳转。
 - 快照：编辑停止 3s 后写 SQLite（每文件保留 20 条）；打开项目时对比磁盘内容，存在差异则弹恢复对话框（恢复后标记 dirty，由自动保存落盘）。
 - 文件 CRUD 完整：新建/重命名/删除/在资源管理器显示（已落地）；刷新（Ctrl+R 待做）；拖拽移动（P1）。
 - 项目设置：主文件切换、项目名重命名。
@@ -258,7 +258,7 @@
 - Vitest 配置（node + jsdom 两个 project）。
 - 组件测试：工具栏、树、菜单、设置。
 - 集成测试：真实编译 fixture（3 个：正常/错误/中文）。
-- Playwright Electron：`pnpm package` 后启动 `out/.../typstor.exe`。
+- Playwright Electron：`pnpm package` 后启动 `out/.../deckle.exe`。
 - 图标资源（16/20/32/64/128/256/512）+ 安装包图标。
 - Squirrel 安装/卸载；`asarUnpack` 验证；干净 Windows 11 测试。
 - `THIRD_PARTY_NOTICES.md`、关于页版本信息。

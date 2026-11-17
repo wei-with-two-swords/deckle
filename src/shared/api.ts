@@ -29,8 +29,8 @@ export interface CloseResult {
   action: 'app' | 'window' | null;
 }
 
-/** preload 暴露到 window.typstor 的完整契约。 */
-export interface TypstorApi {
+/** preload 暴露到 window.deckle 的完整契约。 */
+export interface DeckleApi {
   platform: string;
   window: {
     minimize(): Promise<Result<void>>;

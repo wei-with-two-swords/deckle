@@ -41,7 +41,7 @@ async function askCloseAction(
     type: 'question' as const,
     title: t('关闭'),
     message: t('要关闭应用，还是只关闭当前窗口？'),
-    detail: t('关闭应用会退出 Typstor；只关闭窗口则保留应用在后台运行。'),
+    detail: t('关闭应用会退出 Deckle；只关闭窗口则保留应用在后台运行。'),
     buttons: [t('关闭应用'), t('关闭窗口'), t('取消')],
     defaultId: 0,
     cancelId: 2,

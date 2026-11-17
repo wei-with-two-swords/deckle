@@ -94,7 +94,7 @@ export default function SettingsDialog() {
   useEffect(() => {
     if (!open) return;
     if (!info) {
-      void window.typstor.app.info().then((result) => {
+      void window.deckle.app.info().then((result) => {
         if (result.ok) setInfo(result.data);
       });
     }
@@ -370,7 +370,7 @@ export default function SettingsDialog() {
           {tab === 'about' && (
             <div style={{ fontSize: 13, lineHeight: 1.8 }}>
               <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
-                Typstor
+                Deckle
               </div>
               <div style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>
                 {t('桌面版 Typst 论文编辑器')}
@@ -401,7 +401,7 @@ export default function SettingsDialog() {
                 }}
               >
                 {t(
-                  'Typst 编译器与 typst.ts 以 Apache-2.0 许可分发。界面图标来自\n                Lucide（ISC），界面与图标均为独立实现，不复制 typst.app\n                的图标或页面资源。Typstor 与 typst.app 无关联。',
+                  'Typst 编译器与 typst.ts 以 Apache-2.0 许可分发。界面图标来自\n                Lucide（ISC），界面与图标均为独立实现，不复制 typst.app\n                的图标或页面资源。Deckle 与 typst.app 无关联。',
                 )}
               </div>
             </div>

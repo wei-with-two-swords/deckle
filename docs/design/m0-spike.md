@@ -67,7 +67,7 @@ const diagnostics = err ? compiler.fetchDiagnostics(err) : [];
 {
   "message": "expected expression",
   "package": "",
-  "path": "D:/Code/Typstor/tmp/spike/bad.typ",
+  "path": "D:/Code/Deckle/tmp/spike/bad.typ",
   "severity": 1,
   "range": {
     "start": { "line": 4, "character": 18 },

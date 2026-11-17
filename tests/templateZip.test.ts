@@ -6,7 +6,7 @@ import path from 'node:path';
 import { extractTemplateZip, safeEntryName } from '../src/main/templateZip';
 
 async function makeTempDir(): Promise<string> {
-  return fs.mkdtemp(path.join(os.tmpdir(), 'typstor-zip-test-'));
+  return fs.mkdtemp(path.join(os.tmpdir(), 'deckle-zip-test-'));
 }
 
 describe('extractTemplateZip', () => {

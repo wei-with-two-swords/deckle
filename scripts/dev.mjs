@@ -15,10 +15,14 @@ let restarting = false;
 
 function start() {
   if (child && !child.killed) child.kill();
+  const env = { ...process.env, NODE_ENV: 'development' };
+  // 某些终端/工具链会全局设置该变量；带上它 Electron 会以纯 Node 运行，
+  // require('electron').app 为 undefined，应用起不来。
+  delete env.ELECTRON_RUN_AS_NODE;
   child = spawn(electronPath, ['.'], {
     cwd: root,
     stdio: 'inherit',
-    env: { ...process.env, NODE_ENV: 'development' },
+    env,
   });
   child.on('exit', (code) => {
     if (code && code !== 0) console.warn(`[electron] 退出码 ${code}`);

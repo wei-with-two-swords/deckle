@@ -18,6 +18,7 @@ interface TemplateMeta {
 }
 
 const IGNORED_DIRS = new Set([
+  '.deckle',
   '.typstor',
   '.git',
   'node_modules',
@@ -206,7 +207,7 @@ export async function importTemplate(): Promise<TemplateInfo | null> {
     await fs.copyFile(source, path.join(dir, 'main.typ'));
   } else if (ext === '.zip') {
     baseName = path.basename(source, ext);
-    const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'typstor-template-'));
+    const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'deckle-template-'));
     try {
       await extractTemplateZip(source, temp);
       const resolved = await resolveTemplateRoot(temp);

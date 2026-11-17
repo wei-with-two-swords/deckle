@@ -21,7 +21,7 @@ const PAPER = `#set page(paper: "a4", margin: 2.5cm)
 
 = 引言
 
-这是 Typstor 创建的示例文档。你可以直接编辑这段文字。
+这是 Deckle 创建的示例文档。你可以直接编辑这段文字。
 
 = 公式示例
 

@@ -14,18 +14,18 @@ export default function App() {
   const locale = useLocale();
 
   useEffect(() => {
-    window.__typstorStore = useAppStore;
+    window.__deckleStore = useAppStore;
     void bootstrap();
   }, [bootstrap]);
 
   useEffect(() => {
     // 主进程在关闭窗口前发来握手请求：先把未保存内容和工作区状态落盘。
-    return window.typstor.window.onCloseRequest(() => {
+    return window.deckle.window.onCloseRequest(() => {
       void (async () => {
         try {
           await useAppStore.getState().flushForClose();
         } finally {
-          await window.typstor.window.closeReady();
+          await window.deckle.window.closeReady();
         }
       })();
     });

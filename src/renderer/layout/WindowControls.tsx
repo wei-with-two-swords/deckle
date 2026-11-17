@@ -50,7 +50,7 @@ export function ControlButton({
 }
 
 export default function WindowControls({ maximized }: { maximized: boolean }) {
-  const api = window.typstor.window;
+  const api = window.deckle.window;
 
   return (
     <div className="no-drag" style={{ display: 'flex', height: 40 }}>

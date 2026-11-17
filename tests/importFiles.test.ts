@@ -20,7 +20,7 @@ let targetDir: string;
 let sourceDir: string;
 
 beforeEach(async () => {
-  temp = await fs.mkdtemp(path.join(os.tmpdir(), 'typstor-import-'));
+  temp = await fs.mkdtemp(path.join(os.tmpdir(), 'deckle-import-'));
   projectDir = path.join(temp, 'project');
   targetDir = path.join(projectDir, 'assets');
   sourceDir = path.join(temp, 'sources');

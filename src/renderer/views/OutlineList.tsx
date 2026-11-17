@@ -25,7 +25,7 @@ import {
 } from '../lib/documentOutline';
 import { t } from '../lib/i18n';
 
-const OUTLINE_WEIGHTS_KEY = 'typstor.outline.sectionWeights';
+const OUTLINE_WEIGHTS_KEY = 'deckle.outline.sectionWeights';
 
 /** 用户拖拽后的分区高度权重存在本地，重启后仍保留（VSCode 行为）。 */
 function loadWeights(): OutlineWeights {
@@ -57,7 +57,7 @@ function loadWeights(): OutlineWeights {
 /** 向编辑器派发跳转事件；跨文件时由 AppShell 先打开对应文件再定位。 */
 function jumpTo(file: string, line: number) {
   window.dispatchEvent(
-    new CustomEvent('typstor:goto-line', {
+    new CustomEvent('deckle:goto-line', {
       detail: { file, line, column: 0 },
     }),
   );
@@ -408,7 +408,7 @@ export function OutlineList() {
       const readFile = async (path: string) => {
         let cached = cacheRef.current.get(path);
         if (cached === undefined) {
-          const raw = await window.typstor.fs.readFile(path);
+          const raw = await window.deckle.fs.readFile(path);
           if (!raw.ok) throw new Error(raw.message);
           cached = raw.data.content;
           cacheRef.current.set(path, cached);

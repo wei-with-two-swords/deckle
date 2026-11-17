@@ -4,6 +4,7 @@ import { AppError } from './errors';
 import { t } from './i18n';
 
 const IGNORED_DIRS = new Set([
+  '.deckle',
   '.typstor',
   '.git',
   'node_modules',

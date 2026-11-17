@@ -7,7 +7,7 @@ import { atomicWriteText, WriteConflictError } from '../src/main/atomicWrite';
 let dir: string | null = null;
 
 async function makeFile(content = 'initial'): Promise<string> {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), 'typstor-atomic-'));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), 'deckle-atomic-'));
   const target = path.join(dir, 'main.typ');
   await fs.writeFile(target, content, 'utf8');
   return target;

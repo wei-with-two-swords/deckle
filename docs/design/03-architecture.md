@@ -1,4 +1,4 @@
-# Typstor 架构设计（v0.1）
+# Deckle 架构设计（v0.1）
 
 > 目标：在现有 Electron Forge + Webpack + React 仓库上演进，不换框架；编译在独立子进程，渲染在渲染进程，数据本地。
 
@@ -14,7 +14,7 @@
 ┌──────────────────────────── main (Node 24.22.2, Electron 45) ────────────────────────────┐
 │ app lifecycle / single instance                                                          │
 │ BrowserWindow (frame:false, sandbox:false*, contextIsolation:true)                         │
-│ protocol: typstor://app/*  (html/js/css/wasm/fonts in prod)                               │
+│ protocol: deckle://app/*  (html/js/css/wasm/fonts in prod)                               │
 │ IPC router (typed channels, sender + path validation)                                     │
 │ CompileService: NodeCompiler (napi addon, Typst 0.14.2) + queue + shadow map + cache      │
 │ ProjectService: project.json / workspace.json / main-file detection                       │
@@ -22,7 +22,7 @@
 │ Db: node:sqlite (recent_projects, snapshots)                                              │
 │ Settings: settings.json (userData)                                                        │
 └───────────────────────────────────────────┬───────────────────────────────────────────────┘
-                                            │ contextBridge (window.typstor.*)
+                                            │ contextBridge (window.deckle.*)
 ┌───────────────────────────────────────────┴───────────────────────────────────────────────┐
 │ renderer (Chromium)                                                                       │
 │ React 19 shell: rail / topbar / files / editor / preview / dialogs                        │
@@ -78,11 +78,11 @@ const win = new BrowserWindow({
 
 ### 2.2 preload
 
-只暴露命名空间方法，**不暴露**通用 `invoke(channel, ...args)`。类型从 `src/shared/api.ts` 取，渲染层 `window.typstor` 有完整类型。
+只暴露命名空间方法，**不暴露**通用 `invoke(channel, ...args)`。类型从 `src/shared/api.ts` 取，渲染层 `window.deckle` 有完整类型。
 
 ```ts
 // src/preload/index.ts（示意）
-const api: TypstorApi = {
+const api: DeckleApi = {
   window: {
     minimize: () => ipcRenderer.invoke(CH.WIN_MINIMIZE),
     toggleMaximize: () => ipcRenderer.invoke(CH.WIN_TOGGLE_MAXIMIZE),
@@ -107,7 +107,7 @@ const api: TypstorApi = {
     openExternal: (url) => ipcRenderer.invoke(CH.SHELL_OPEN_EXTERNAL, url),
   },
 };
-contextBridge.exposeInMainWorld('typstor', api);
+contextBridge.exposeInMainWorld('deckle', api);
 ```
 
 保留旧的 `window.electronAPI.invoke` 直到 M2 迁移完成，随后删除。
@@ -447,12 +447,12 @@ await renderer.runWithSession(
 ### 6.1 打开项目
 
 1. `dialog.showOpenDialog({ properties: ['openDirectory'] })`。
-2. 若 `<dir>/.typstor/project.json` 存在：读取并校验；否则扫描顶层 `*.typ`：
+2. 若 `<dir>/.deckle/project.json` 存在：读取并校验；否则回退读取旧版 `<dir>/.typstor/project.json`；都没有时扫描顶层 `*.typ`：
    - 有 `main.typ` → 生成默认 config（不写盘，首次保存时写）；
    - 只有一个 `.typ` → 作为主文件；
    - 多个且无 main → 弹出选择主文件。
-3. 读取 `workspace.json`（不存在则默认）；恢复上次文件；写入 `recent_projects`。
-4. 启动 watcher（忽略 `.typstor/**`、`.git/**`、`node_modules/**`）。
+3. 读取 `workspace.json`（优先 `.deckle`，回退 `.typstor`；不存在则默认）；恢复上次文件；写入 `recent_projects`。
+4. 启动 watcher（忽略 `.deckle/**`、`.typstor/**`、`.git/**`、`node_modules/**`）。
 
 ### 6.2 原子保存
 
@@ -491,13 +491,13 @@ async function writeAtomic(
 - `fs:writeFile` 参数为 `{path, content, expectedMtimeMs?, force?}`；`force` 仅由冲突对话框的“覆盖保存”传入。
 - 后续（M4）：watcher 100ms 去抖、合并同路径事件、干净时自动重载、删除事件处理；另存副本作为冲突对话框第四项。
 - 编辑器状态按文件缓存（最多 30 个）：切换回来时若内容未变，复用 `EditorState`，保留撤销历史与光标；磁盘重载后内容变化则丢弃缓存。
-- 外部监听（M4 已落地）：`chokidar` 监听项目根（`ignoreInitial`、`awaitWriteFinish` 120ms、忽略 `.typstor/.git/node_modules/out/.webpack/tmp` 与 `.swp`），事件以 `{kind:'tree', event, path}` 经 `project:watch-event` 发到渲染层；打开/新建项目时启动，关闭项目时 `project:stopWatch`。渲染层对活动文件读盘比对：内容相同只更新 mtime（抑制自身保存回声）；不同且干净则重建编辑器（`revision+1`），脏则复用冲突对话框。文件树事件只重载受影响父目录，删除时清理对应子树展开状态。
+- 外部监听（M4 已落地）：`chokidar` 监听项目根（`ignoreInitial`、`awaitWriteFinish` 120ms、忽略 `.deckle/.git/node_modules/out/.webpack/tmp` 与 `.swp`），事件以 `{kind:'tree', event, path}` 经 `project:watch-event` 发到渲染层；打开/新建项目时启动，关闭项目时 `project:stopWatch`。渲染层对活动文件读盘比对：内容相同只更新 mtime（抑制自身保存回声）；不同且干净则重建编辑器（`revision+1`），脏则复用冲突对话框。文件树事件只重载受影响父目录，删除时清理对应子树展开状态。
 
 ### 6.4 新建项目模板
 
 ```
 <parent>/<name>/
-  .typstor/project.json
+  .deckle/project.json
   main.typ
 ```
 
@@ -513,7 +513,7 @@ async function writeAtomic(
 ```ts
 protocol.registerSchemesAsPrivileged([
   {
-    scheme: 'typstor',
+    scheme: 'deckle',
     privileges: {
       standard: true,
       secure: true,
@@ -525,7 +525,7 @@ protocol.registerSchemesAsPrivileged([
 ]);
 ```
 
-- `app.whenReady()` 后 `protocol.handle('typstor', handler)`：
+- `app.whenReady()` 后 `protocol.handle('deckle', handler)`：
 
 ```ts
 const ROOT = path.join(app.getAppPath(), '.webpack/renderer/main_window');
@@ -554,9 +554,9 @@ async function handler(req: Request) {
 }
 ```
 
-- 生产 `loadURL('typstor://app/index.html')`；开发用 `MAIN_WINDOW_WEBPACK_ENTRY`（http://localhost:…）。
+- 生产 `loadURL('deckle://app/index.html')`；开发用 `MAIN_WINDOW_WEBPACK_ENTRY`（http://localhost:…）。
 - webpack `output.publicPath: 'auto'`，保证相对 chunk 在自定义协议下可解析；M1 验证。
-- CSP 允许 `typstor:`；开发额外允许 `ws:`。
+- CSP 允许 `deckle:`；开发额外允许 `ws:`。
 
 ### 7.2 路径校验
 
@@ -596,7 +596,7 @@ main: 2s 超时 → 直接走 askCloseAction 对话框
 ```html
 <meta
   http-equiv="Content-Security-Policy"
-  content="default-src 'self' typstor:; script-src 'self' typstor:; style-src 'self' 'unsafe-inline' typstor:; img-src 'self' data: blob: typstor:; font-src 'self' typstor:; connect-src 'self' typstor: http://localhost:* ws://localhost:*;"
+  content="default-src 'self' deckle:; script-src 'self' deckle:; style-src 'self' 'unsafe-inline' deckle:; img-src 'self' data: blob: deckle:; font-src 'self' deckle:; connect-src 'self' deckle: http://localhost:* ws://localhost:*;"
 />
 ```
 
@@ -667,7 +667,7 @@ interface CompileStore {
 // src/main/db/index.ts
 import { DatabaseSync } from 'node:sqlite';
 
-const db = new DatabaseSync(path.join(app.getPath('userData'), 'typstor.db'));
+const db = new DatabaseSync(path.join(app.getPath('userData'), 'deckle.db'));
 db.exec('PRAGMA journal_mode = WAL');
 db.exec('PRAGMA foreign_keys = ON');
 migrate(db); // PRAGMA user_version
@@ -696,7 +696,7 @@ PRAGMA user_version = 1;
 - `recent_projects` upsert：`INSERT ... ON CONFLICT(path) DO UPDATE SET opened_at=excluded.opened_at, name=..., main_file=...`。
 - 上限 50 条，超出删除最旧且非 pinned。
 - 快照保留：每文件 20 条；插入后删除更旧。
-- 迁移函数逐版本执行，事务包裹；失败回滚并保留旧库（先备份 `typstor.db.bak`）。
+- 迁移函数逐版本执行，事务包裹；失败回滚并保留旧库（先备份 `deckle.db.bak`）。
 - `node:sqlite` 仍是实验 API：若未来 Electron 移除，抽象 `Db` 接口，替换 better-sqlite3（ADR-5）。
 
 ## 10. 设置
@@ -733,7 +733,7 @@ interface Settings {
 - `webpack.rules.mjs`：`.ts/.tsx` 与 `.js/.jsx` 各一条 babel-loader 规则；`@babel/preset-react` 统一 `runtime: 'automatic'`、`development: false`（生产构建生成 `jsx` 而不是 `jsxDEV`，否则打包后白屏）。Babel 8 移除了 `allExtensions`/`isTSX`，TSX 由扩展名自动识别。
 - `webpack.renderer.config.mjs`：`output.publicPath: 'auto'`；`codemirror-lang-typst` 的 `.wasm` 走 `webassembly/async`，其余 `.wasm` 走 asset/resource；`experiments.asyncWebAssembly: true`。
 - `webpack.main.config.mjs`：`externalsPresets: { node: true }`；将 `@myriaddreamin/typst-ts-node-compiler` 标记 external，运行时从 node_modules 解析；`ignoreWarnings` 过滤其它平台 optional addon 的 “Can't resolve” 警告。
-- `forge.config.mjs`：`packagerConfig.asar: true`、`icon: './assets/icon'`；AutoUnpackNativesPlugin 负责 `.node`；`out/typstor-win32-x64/typstor.exe` 约 250MB，解包后的 `typst-ts-node-compiler.win32-x64-msvc.node` 约 52MB。
+- `forge.config.mjs`：`packagerConfig.asar: true`、`icon: './assets/icon'`；AutoUnpackNativesPlugin 负责 `.node`；`out/deckle-win32-x64/deckle.exe` 约 250MB，解包后的 `typst-ts-node-compiler.win32-x64-msvc.node` 约 52MB。
 
 ### 11.2 TypeScript
 
@@ -750,10 +750,10 @@ interface Settings {
 ### 11.3 安装包
 
 - Makers：Squirrel（Windows）、ZIP（macOS）、Deb/RPM（Linux）。
-- `productName: Typstor`、`appId: com.typstor.app`；安装包图标由 `assets/icon.ico` 提供（`scripts/make-icon.py` 生成）。
+- `productName: Deckle`、`appId: com.deckle.app`；安装包图标由 `assets/icon.ico` 提供（`scripts/make-icon.py` 生成）。
 - `THIRD_PARTY_NOTICES.md` 随包；关于页展示版本、Electron/Node/Typst 版本。
 - 不启用自动更新（P1）。
-- 打包冒烟：`TYPSTOR_SMOKE=1`、`TYPSTOR_SMOKE_PARENT=<out/smoke>`、`TYPSTOR_SMOKE_LOG=<log>`，直接启动 `out/typstor-win32-x64/typstor.exe`；日志写入文件，避免中文控制台乱码。
+- 打包冒烟：`DECKLE_SMOKE=1`、`DECKLE_SMOKE_PARENT=<out/smoke>`、`DECKLE_SMOKE_LOG=<log>`，直接启动 `out/deckle-win32-x64/deckle.exe`；日志写入文件，避免中文控制台乱码。
 
 ## 12. 性能
 

@@ -7,14 +7,14 @@
  *   ├── .webpack/main/native_modules/*.node   → asarUnpack
  *   ├── .webpack/utility/compile.cjs          → 编译子进程
  *   ├── .webpack/utility/native_modules/*.node → asarUnpack
- *   ├── .webpack/renderer/**                  → typstor:// scheme 读取
+ *   ├── .webpack/renderer/**                  → deckle:// scheme 读取
  *   └── package.json
  *
  * webpack 已把所有 JS 依赖打进 bundle，因此 node_modules 不进包。
  */
 export const builderConfig = {
-  appId: 'com.typstor.app',
-  productName: 'typstor',
+  appId: 'com.deckle.app',
+  productName: 'Deckle',
   copyright: 'Copyright © 2026 wei',
 
   directories: {
@@ -23,7 +23,15 @@ export const builderConfig = {
   },
 
   // 只打包编译产物；排除 sourcemap 与已被 bundle 的依赖目录。
-  files: ['.webpack/**/*', 'package.json', '!**/*.map', '!node_modules/**/*'],
+  files: [
+    '.webpack/**/*',
+    'package.json',
+    'LICENSE',
+    'NOTICE',
+    'THIRD_PARTY_NOTICES.md',
+    '!**/*.map',
+    '!node_modules/**/*',
+  ],
 
   asar: true,
   asarUnpack: [
@@ -50,7 +58,7 @@ export const builderConfig = {
   win: {
     icon: 'assets/icon.ico',
     target: [{ target: 'nsis', arch: ['x64'] }],
-    // 与旧 Squirrel 包保持同样的命名习惯：typstor-1.0.0 Setup.exe
+    // 与旧 Squirrel 包保持同样的命名习惯：deckle-1.0.0 Setup.exe
     artifactName: '${productName}-${version} Setup.${ext}',
   },
 
@@ -62,20 +70,20 @@ export const builderConfig = {
     // 仍可通过下面的目录页改到任意位置）。
     // 关键：perMachine:true 才会把安装包 manifest 编译成 requireAdministrator，
     // 双击时由系统弹出 UAC；否则是 asInvoker，普通权限运行，在部分机器上
-    // 会因安全策略无法写出 Uninstall typstor.exe 而安装失败。
+    // 会因安全策略无法写出 Uninstall deckle.exe 而安装失败。
     perMachine: true,
     createDesktopShortcut: true,
     createStartMenuShortcut: true,
-    shortcutName: 'Typstor',
+    shortcutName: 'Deckle',
     // 简体中文安装界面（LCID 2052）。
     language: '2052',
     // 覆盖默认的「关闭运行中应用」检测：只处理安装目录内的进程，
-    // 避免全局按 typstor.exe 进程名误伤旧 Squirrel 版 / 绿色版后弹「无法关闭」。
+    // 避免全局按 deckle.exe 进程名误伤旧 Squirrel 版 / 绿色版后弹「无法关闭」。
     // 文件位于 buildResources（assets/installer.nsh）。
     include: 'installer.nsh',
     // 生成 .blockmap，为以后接 electron-updater 的差分更新留通道。
     differentialPackage: true,
-    // 卸载时保留 %APPDATA%\typstor 里的项目记录与设置。
+    // 卸载时保留 %APPDATA%\Deckle 里的项目记录与设置。
     deleteAppDataOnUninstall: false,
   },
 };

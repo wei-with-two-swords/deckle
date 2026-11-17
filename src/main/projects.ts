@@ -29,8 +29,12 @@ import { AppError } from './errors';
 import { copyTemplateInto } from './templates';
 import { t } from './i18n';
 
+const META_DIR = '.deckle';
+const LEGACY_META_DIR = '.typstor';
+
 const IGNORED_NAMES = new Set([
-  '.typstor',
+  META_DIR,
+  LEGACY_META_DIR,
   '.git',
   'node_modules',
   '.DS_Store',
@@ -86,6 +90,34 @@ async function readJson(file: string): Promise<unknown | null> {
   } catch {
     return null;
   }
+}
+
+async function pathExists(target: string): Promise<boolean> {
+  try {
+    await fs.access(target);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** 先读新目录，再回退到旧版 .typstor，已有项目无需迁移即可打开。 */
+async function readMetaJson(
+  projectPath: string,
+  file: string,
+): Promise<unknown | null> {
+  const current = await readJson(path.join(projectPath, META_DIR, file));
+  if (current !== null) return current;
+  return readJson(path.join(projectPath, LEGACY_META_DIR, file));
+}
+
+/** 新项目写 .deckle；旧项目继续写回 .typstor，避免同一项目出现两份元数据。 */
+async function metaDir(projectPath: string): Promise<string> {
+  if (await pathExists(path.join(projectPath, META_DIR))) return META_DIR;
+  if (await pathExists(path.join(projectPath, LEGACY_META_DIR))) {
+    return LEGACY_META_DIR;
+  }
+  return META_DIR;
 }
 
 async function writeJsonAtomic(file: string, value: unknown): Promise<void> {
@@ -155,9 +187,7 @@ function validateConfig(
 }
 
 async function detectConfig(projectPath: string): Promise<ProjectConfig> {
-  const stored = await readJson(
-    path.join(projectPath, '.typstor', 'project.json'),
-  );
+  const stored = await readMetaJson(projectPath, 'project.json');
   const parsed = validateConfig(stored, path.basename(projectPath));
   if (parsed) return parsed;
 
@@ -192,9 +222,7 @@ async function detectConfig(projectPath: string): Promise<ProjectConfig> {
 }
 
 async function readWorkspace(projectPath: string): Promise<WorkspaceState> {
-  const raw = await readJson(
-    path.join(projectPath, '.typstor', 'workspace.json'),
-  );
+  const raw = await readMetaJson(projectPath, 'workspace.json');
   return sanitizeWorkspace(raw);
 }
 
@@ -258,7 +286,7 @@ export async function createProject(
     if (error instanceof AppError) throw error;
   }
 
-  await fs.mkdir(path.join(target, '.typstor'), { recursive: true });
+  await fs.mkdir(path.join(target, META_DIR), { recursive: true });
   const mainFile = await copyTemplateInto(templateId, target);
   const config: ProjectConfig = {
     version: 1,
@@ -268,9 +296,9 @@ export async function createProject(
     template: templateId,
     templateId,
   };
-  await writeJsonAtomic(path.join(target, '.typstor', 'project.json'), config);
+  await writeJsonAtomic(path.join(target, META_DIR, 'project.json'), config);
   await writeJsonAtomic(
-    path.join(target, '.typstor', 'workspace.json'),
+    path.join(target, META_DIR, 'workspace.json'),
     DEFAULT_WORKSPACE,
   );
 
@@ -326,7 +354,7 @@ export async function importTypstFile(
     if (error instanceof AppError) throw error;
   }
 
-  await fs.mkdir(path.join(target, '.typstor'), { recursive: true });
+  await fs.mkdir(path.join(target, META_DIR), { recursive: true });
   await fs.writeFile(path.join(target, 'main.typ'), content, 'utf8');
   const config: ProjectConfig = {
     version: 1,
@@ -335,9 +363,9 @@ export async function importTypstFile(
     createdAt: new Date().toISOString(),
     template: 'blank',
   };
-  await writeJsonAtomic(path.join(target, '.typstor', 'project.json'), config);
+  await writeJsonAtomic(path.join(target, META_DIR, 'project.json'), config);
   await writeJsonAtomic(
-    path.join(target, '.typstor', 'workspace.json'),
+    path.join(target, META_DIR, 'workspace.json'),
     DEFAULT_WORKSPACE,
   );
 
@@ -407,7 +435,7 @@ export async function saveProjectWorkspace(
 ): Promise<void> {
   assertInside(projectPath);
   await writeJsonAtomic(
-    path.join(projectPath, '.typstor', 'workspace.json'),
+    path.join(projectPath, await metaDir(projectPath), 'workspace.json'),
     sanitizeWorkspace(workspace),
   );
 }
@@ -459,7 +487,7 @@ export async function updateProjectConfig(
   }
 
   await writeJsonAtomic(
-    path.join(projectPath, '.typstor', 'project.json'),
+    path.join(projectPath, await metaDir(projectPath), 'project.json'),
     next,
   );
   touchRecentProject({

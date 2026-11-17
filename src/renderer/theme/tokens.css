@@ -498,12 +498,12 @@ button {
   color: var(--on-critical);
 }
 
-@keyframes typstor-spin {
+@keyframes deckle-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
 .spin {
-  animation: typstor-spin 1s linear infinite;
+  animation: deckle-spin 1s linear infinite;
 }

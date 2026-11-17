@@ -12,13 +12,13 @@ const root = path.dirname(fileURLToPath(import.meta.url));
  * 开发环境不注入（eval-source-map 需要 eval）。
  */
 const PRODUCTION_CSP = [
-  "default-src 'self' typstor: blob: data:;",
-  "script-src 'self' typstor: 'wasm-unsafe-eval';",
-  "style-src 'self' 'unsafe-inline' typstor:;",
-  "img-src 'self' typstor: blob: data:;",
-  "font-src 'self' typstor: data:;",
-  "connect-src 'self' typstor: blob: data:;",
-  "worker-src 'self' typstor: blob:;",
+  "default-src 'self' deckle: blob: data:;",
+  "script-src 'self' deckle: 'wasm-unsafe-eval';",
+  "style-src 'self' 'unsafe-inline' deckle:;",
+  "img-src 'self' deckle: blob: data:;",
+  "font-src 'self' deckle: data:;",
+  "connect-src 'self' deckle: blob: data:;",
+  "worker-src 'self' deckle: blob:;",
 ].join(' ');
 
 /** 渲染器 bundle + index.html，输出到 .webpack/renderer。 */
@@ -44,7 +44,7 @@ export default function rendererConfig({ mode = 'production' } = {}) {
     plugins: [
       new AssetRelocatorPatch(),
       new HtmlWebpackPlugin({
-        title: 'Typstor',
+        title: 'Deckle',
         template: path.resolve(root, 'src/renderer/index.html'),
         filename: 'main_window/index.html',
         chunks: ['main_window'],

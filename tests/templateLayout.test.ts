@@ -5,7 +5,7 @@ import path from 'node:path';
 import { resolveTemplateRoot } from '../src/main/templateLayout';
 
 async function tempRoot(): Promise<string> {
-  return fs.mkdtemp(path.join(os.tmpdir(), 'typstor-layout-test-'));
+  return fs.mkdtemp(path.join(os.tmpdir(), 'deckle-layout-test-'));
 }
 
 describe('resolveTemplateRoot', () => {

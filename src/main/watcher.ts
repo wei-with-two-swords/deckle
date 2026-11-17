@@ -7,6 +7,7 @@ import { t } from './i18n';
 
 /** 不参与监听的项目内目录（与项目服务忽略规则保持一致）。 */
 const IGNORED_DIRS = new Set([
+  '.deckle',
   '.typstor',
   '.git',
   'node_modules',

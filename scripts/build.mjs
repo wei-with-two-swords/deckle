@@ -27,7 +27,12 @@ function summarize(name, stats) {
   });
   const assets = (info.assets ?? [])
     .map((asset) => asset.name)
-    .filter((file) => !file.endsWith('.map') && !file.endsWith('.LICENSE.txt'));
+    .filter(
+      (file) =>
+        typeof file === 'string' &&
+        !file.endsWith('.map') &&
+        !file.endsWith('.LICENSE.txt'),
+    );
   console.log(
     `[webpack:${name}] ${stats.hasWarnings() ? 'warnings' : 'ok'} — ${assets.length} assets`,
   );

@@ -47,7 +47,7 @@ function projectCompileInput(
     activePath: doc.path,
     activeContent: doc.content,
     readFile: async (path) => {
-      const raw = await window.typstor.fs.readFile(path);
+      const raw = await window.deckle.fs.readFile(path);
       if (!raw.ok) throw new Error(raw.message);
       return raw.data.content;
     },
@@ -281,7 +281,7 @@ export const useAppStore = create<AppState>((set, get) => {
       workspaceTimer = null;
       const { project, readOnly } = get();
       if (!project || readOnly) return;
-      void window.typstor.project
+      void window.deckle.project
         .saveWorkspace(project.path, buildWorkspace())
         .catch(() => undefined);
     }, 500);
@@ -311,7 +311,7 @@ export const useAppStore = create<AppState>((set, get) => {
       snapshotTimer = null;
       const { project, doc, readOnly } = get();
       if (!project || !doc || readOnly) return;
-      void window.typstor.snapshot
+      void window.deckle.snapshot
         .save(project.path, doc.path, doc.content)
         .catch(() => undefined);
     }, delay);
@@ -448,8 +448,8 @@ export const useAppStore = create<AppState>((set, get) => {
 
     async bootstrap() {
       try {
-        const settings = unwrap(await window.typstor.settings.get());
-        const platform = window.typstor.platform;
+        const settings = unwrap(await window.deckle.settings.get());
+        const platform = window.deckle.platform;
         const theme = settings.theme;
         applyTheme(theme);
         set({ settings, theme, platform });
@@ -487,7 +487,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
     async patchSettings(patch) {
       try {
-        const settings = unwrap(await window.typstor.settings.set(patch));
+        const settings = unwrap(await window.deckle.settings.set(patch));
         set({ settings });
         return settings;
       } catch (error) {
@@ -498,7 +498,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
     async refreshRecent() {
       try {
-        const recent = unwrap(await window.typstor.project.recent());
+        const recent = unwrap(await window.deckle.project.recent());
         set({ recent });
       } catch (error) {
         get().showToast(errorText(error), 'error');
@@ -507,7 +507,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
     async removeRecent(path) {
       try {
-        unwrap(await window.typstor.project.removeRecent(path));
+        unwrap(await window.deckle.project.removeRecent(path));
         await get().refreshRecent();
       } catch (error) {
         get().showToast(errorText(error), 'error');
@@ -516,7 +516,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
     async exportProjectPdfFile(path) {
       try {
-        const result = unwrap(await window.typstor.project.exportPdf(path));
+        const result = unwrap(await window.deckle.project.exportPdf(path));
         if (!result) return false;
         get().showToast(t('已导出 PDF：{path}', { path: result.path }));
         return true;
@@ -528,7 +528,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
     async exportProjectArchiveFile(path) {
       try {
-        const result = unwrap(await window.typstor.project.exportArchive(path));
+        const result = unwrap(await window.deckle.project.exportArchive(path));
         if (!result) return false;
         get().showToast(t('已导出压缩包：{path}', { path: result.path }));
         return true;
@@ -540,7 +540,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
     async deleteProjectFolder(path) {
       try {
-        unwrap(await window.typstor.project.deleteProject(path));
+        unwrap(await window.deckle.project.deleteProject(path));
         await get().refreshRecent();
         get().showToast(t('项目已删除'));
         return true;
@@ -552,7 +552,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
     async refreshTemplates() {
       try {
-        const templates = unwrap(await window.typstor.templates.list());
+        const templates = unwrap(await window.deckle.templates.list());
         set({ templates });
       } catch (error) {
         get().showToast(errorText(error), 'error');
@@ -561,7 +561,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
     async importTemplate() {
       try {
-        const template = unwrap(await window.typstor.templates.import());
+        const template = unwrap(await window.deckle.templates.import());
         if (!template) return null;
         await get().refreshTemplates();
         get().showToast(t('模板已导入：{name}', { name: template.name }));
@@ -574,7 +574,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
     async deleteTemplate(id) {
       try {
-        unwrap(await window.typstor.templates.remove(id));
+        unwrap(await window.deckle.templates.remove(id));
         await get().refreshTemplates();
         get().showToast(t('模板已删除'));
         return true;
@@ -587,7 +587,7 @@ export const useAppStore = create<AppState>((set, get) => {
     async openProject(explicitPath, options) {
       try {
         const result = unwrap(
-          await window.typstor.project.open({
+          await window.deckle.project.open({
             path: explicitPath,
             readOnly: options?.readOnly,
             skipRecent: options?.skipRecent,
@@ -614,7 +614,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
     async importProject() {
       try {
-        const result = unwrap(await window.typstor.project.importFile());
+        const result = unwrap(await window.deckle.project.importFile());
         if (!result) return false;
         await applyProject(result);
         return true;
@@ -627,7 +627,7 @@ export const useAppStore = create<AppState>((set, get) => {
     async createProject(name) {
       try {
         const result = unwrap(
-          await window.typstor.project.create({
+          await window.deckle.project.create({
             name,
             parentDir: null,
             templateId: get().newProjectTemplateId,
@@ -646,7 +646,7 @@ export const useAppStore = create<AppState>((set, get) => {
       if (!project) return false;
       try {
         const config = unwrap(
-          await window.typstor.project.updateConfig(project.path, patch),
+          await window.deckle.project.updateConfig(project.path, patch),
         );
         set({ project: { ...project, config } });
         await get().refreshRecent();
@@ -666,7 +666,7 @@ export const useAppStore = create<AppState>((set, get) => {
       clearCoverCache();
       const project = get().project;
       if (project) {
-        void window.typstor.project
+        void window.deckle.project
           .stopWatch(project.path)
           .catch(() => undefined);
       }
@@ -677,7 +677,7 @@ export const useAppStore = create<AppState>((set, get) => {
       if (project && doc && !wasReadOnly && doc.content !== doc.savedContent) {
         const saved = await get().saveDoc();
         if (!saved) {
-          await window.typstor.snapshot
+          await window.deckle.snapshot
             .save(project.path, doc.path, doc.content)
             .catch(() => undefined);
           get().showToast(t('保存失败，内容已存入恢复快照'), 'error');
@@ -719,7 +719,7 @@ export const useAppStore = create<AppState>((set, get) => {
           await get().saveDoc();
         } else {
           // 有冲突时不擅自覆盖磁盘版本，至少把本地内容留进恢复快照。
-          await window.typstor.snapshot
+          await window.deckle.snapshot
             .save(project.path, doc.path, doc.content)
             .catch(() => undefined);
         }
@@ -730,11 +730,11 @@ export const useAppStore = create<AppState>((set, get) => {
       // 保存期间又产生了编辑，或保存被冲突拦下：至少留一份恢复快照。
       const after = get();
       if (after.doc && after.doc.content !== after.doc.savedContent) {
-        await window.typstor.snapshot
+        await window.deckle.snapshot
           .save(project.path, after.doc.path, after.doc.content)
           .catch(() => undefined);
       }
-      await window.typstor.project
+      await window.deckle.project
         .saveWorkspace(project.path, buildWorkspace())
         .catch(() => undefined);
     },
@@ -743,7 +743,7 @@ export const useAppStore = create<AppState>((set, get) => {
       if (get().loading[dir]) return;
       set((state) => ({ loading: { ...state.loading, [dir]: true } }));
       try {
-        const entries = unwrap(await window.typstor.fs.readDir(dir));
+        const entries = unwrap(await window.deckle.fs.readDir(dir));
         set((state) => ({
           tree: { ...state.tree, [dir]: entries },
           loading: { ...state.loading, [dir]: false },
@@ -762,7 +762,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
       try {
         const entry = unwrap(
-          await window.typstor.fs.createEntry(
+          await window.deckle.fs.createEntry(
             project.path,
             parentDir,
             name,
@@ -800,7 +800,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
       try {
         const entry = unwrap(
-          await window.typstor.fs.renameEntry(project.path, entryPath, name),
+          await window.deckle.fs.renameEntry(project.path, entryPath, name),
         );
         set((s) => {
           const tree: Record<string, FileEntry[]> = {};
@@ -843,7 +843,7 @@ export const useAppStore = create<AppState>((set, get) => {
       }
 
       try {
-        unwrap(await window.typstor.fs.deleteEntry(project.path, entryPath));
+        unwrap(await window.deckle.fs.deleteEntry(project.path, entryPath));
         set((s) => {
           const tree: Record<string, FileEntry[]> = {};
           for (const [key, entries] of Object.entries(s.tree)) {
@@ -878,7 +878,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
       try {
         const result = unwrap(
-          await window.typstor.fs.importFiles(project.path, targetDir),
+          await window.deckle.fs.importFiles(project.path, targetDir),
         );
         if (!result) return false;
 
@@ -1044,7 +1044,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
       set({ fileLoading: true });
       try {
-        const data = unwrap(await window.typstor.fs.readFile(file));
+        const data = unwrap(await window.deckle.fs.readFile(file));
         const revision = (get().doc?.revision ?? 0) + 1;
         set({
           activeFile: file,
@@ -1117,7 +1117,7 @@ export const useAppStore = create<AppState>((set, get) => {
       const write = (async () => {
         try {
           const written = unwrap(
-            await window.typstor.fs.writeFile(doc.path, content, doc.mtimeMs),
+            await window.deckle.fs.writeFile(doc.path, content, doc.mtimeMs),
           );
           set((current) => {
             const active = current.doc;
@@ -1142,7 +1142,7 @@ export const useAppStore = create<AppState>((set, get) => {
             let diskContent = content;
             try {
               diskContent = unwrap(
-                await window.typstor.fs.readFile(doc.path),
+                await window.deckle.fs.readFile(doc.path),
               ).content;
             } catch {
               // 磁盘文件可能已被删除，保留写入时的内容作为占位版本。
@@ -1183,7 +1183,7 @@ export const useAppStore = create<AppState>((set, get) => {
         // 不自动重试：磁盘 mtime 仍是外部的，重试只会再次弹框。
         // 但把本地未保存版本放进恢复快照，避免退出时丢内容。
         if (get().doc?.content !== get().doc?.savedContent && state.project) {
-          void window.typstor.snapshot
+          void window.deckle.snapshot
             .save(
               state.project.path,
               conflict.path,
@@ -1205,7 +1205,7 @@ export const useAppStore = create<AppState>((set, get) => {
             mtimeMs: get().doc?.mtimeMs ?? 0,
           };
           try {
-            disk = unwrap(await window.typstor.fs.readFile(conflict.path));
+            disk = unwrap(await window.deckle.fs.readFile(conflict.path));
           } catch {
             // 文件可能刚被删除，仍按已记录的版本载入。
           }
@@ -1231,7 +1231,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
       try {
         const written = unwrap(
-          await window.typstor.fs.writeFile(
+          await window.deckle.fs.writeFile(
             conflict.path,
             conflict.localContent,
             undefined,
@@ -1270,7 +1270,7 @@ export const useAppStore = create<AppState>((set, get) => {
       ) {
         void (async () => {
           try {
-            const disk = unwrap(await window.typstor.fs.readFile(absolute));
+            const disk = unwrap(await window.deckle.fs.readFile(absolute));
             const current = get().doc;
             if (!current || !samePath(current.path, absolute)) return;
 
@@ -1370,7 +1370,7 @@ export const useAppStore = create<AppState>((set, get) => {
         return;
       }
       try {
-        const result = unwrap(await window.typstor.snapshot.list(project.path));
+        const result = unwrap(await window.deckle.snapshot.list(project.path));
         set({ recovery: result.length > 0 ? result : null });
       } catch {
         set({ recovery: null });
@@ -1398,7 +1398,7 @@ export const useAppStore = create<AppState>((set, get) => {
           scheduleAutosave();
         }
       }
-      await window.typstor.snapshot.delete(id).catch(() => undefined);
+      await window.deckle.snapshot.delete(id).catch(() => undefined);
       const remaining = (get().recovery ?? []).filter(
         (snapshot) => snapshot.id !== id,
       );
@@ -1409,9 +1409,7 @@ export const useAppStore = create<AppState>((set, get) => {
     async dismissRecovery(clear = false) {
       const project = get().project;
       if (clear && project) {
-        await window.typstor.snapshot
-          .clear(project.path)
-          .catch(() => undefined);
+        await window.deckle.snapshot.clear(project.path).catch(() => undefined);
       }
       set({ recovery: null });
     },
@@ -1441,7 +1439,7 @@ export const useAppStore = create<AppState>((set, get) => {
         set({ compileStatus: 'compiling' });
         const input = await projectCompileInput(project, doc);
         const result = unwrap(
-          await window.typstor.compile.document(
+          await window.deckle.compile.document(
             project.path,
             project.config.mainFile,
             input.content,
@@ -1498,7 +1496,7 @@ export const useAppStore = create<AppState>((set, get) => {
       try {
         const input = await projectCompileInput(project, doc);
         const result = unwrap(
-          await window.typstor.exportPdf.run(
+          await window.deckle.exportPdf.run(
             project.path,
             project.config.mainFile,
             input.content,
@@ -1516,7 +1514,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
     async showItem(itemPath) {
       try {
-        unwrap(await window.typstor.app.showItem(itemPath));
+        unwrap(await window.deckle.app.showItem(itemPath));
       } catch (error) {
         get().showToast(errorText(error), 'error');
       }
@@ -1574,7 +1572,7 @@ export const useAppStore = create<AppState>((set, get) => {
         doc && doc.path ? { path: doc.path, content: doc.content } : undefined;
       try {
         const total = unwrap(
-          await window.typstor.project.wordCount(state.project.path, override),
+          await window.deckle.project.wordCount(state.project.path, override),
         );
         // 请求期间若切换了项目，丢弃过期结果。
         if (get().project?.path !== state.project.path) return;

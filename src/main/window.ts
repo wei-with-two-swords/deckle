@@ -130,11 +130,11 @@ export function createMainWindow(): BrowserWindow {
     event.preventDefault();
   });
 
-  // 开发与打包都走 typstor:// 自定义 scheme，由 protocol.ts 从
+  // 开发与打包都走 deckle:// 自定义 scheme，由 protocol.ts 从
   // .webpack/renderer 读取 HTML / JS / wasm，避免 file:// 的跨域限制。
   void win.loadURL(appUrl());
 
-  if (process.env.TYPSTOR_DEVTOOLS === '1') {
+  if (process.env.DECKLE_DEVTOOLS === '1') {
     win.webContents.openDevTools({ mode: 'detach' });
   }
 
@@ -149,7 +149,7 @@ export function getMainWindow(): BrowserWindow | null {
 export function setTitleFromProject(name: string | null): void {
   const win = mainWindow;
   if (!win || win.isDestroyed()) return;
-  win.setTitle(name ? `${name} — Typstor` : 'Typstor');
+  win.setTitle(name ? `${name} — Deckle` : 'Deckle');
 }
 
 export function projectRelative(projectPath: string, target: string): string {

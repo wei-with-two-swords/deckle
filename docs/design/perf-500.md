@@ -34,7 +34,7 @@
 
 ## 3. 应用内实测
 
-探针：`TYPSTOR_PERF_PROJECT=perf/500-pages npm start`，主进程 `attachPerfProbe` 用 `executeJavaScript` 驱动，单次运行：
+探针：`DECKLE_PERF_PROJECT=perf/500-pages npm start`，主进程 `attachPerfProbe` 用 `executeJavaScript` 驱动，单次运行：
 
 | 指标                              | 耗时    | 说明                        |
 | --------------------------------- | ------- | --------------------------- |
@@ -59,7 +59,7 @@
 
 ```powershell
 npm run perf:500
-$env:TYPSTOR_PERF_PROJECT = "D:\Code\Typstor\perf\500-pages"
+$env:DECKLE_PERF_PROJECT = "D:\Code\Deckle\perf\500-pages"
 npm start
 ```
 

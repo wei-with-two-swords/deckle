@@ -1,4 +1,4 @@
-"""Generate the Typstor app icon (PNG + ICO) with a blue gradient and a white T."""
+"""Generate the Deckle app icon (PNG + ICO) with a blue gradient and a white D."""
 
 from pathlib import Path
 
@@ -31,7 +31,7 @@ icon.putalpha(mask)
 
 draw = ImageDraw.Draw(icon)
 font = ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", int(660 * SS))
-text = "T"
+text = "D"
 box = draw.textbbox((0, 0), text, font=font)
 tw, th = box[2] - box[0], box[3] - box[1]
 x = (W - tw) / 2 - box[0]

@@ -30,8 +30,8 @@ export const EN: Record<string, string> = {
     'Typst engine: 0.14.2 (typst.ts 0.7.0)',
   'Typst 文档': 'Typst document',
   'Typst 模板（.typ / .zip）': 'Typst templates (.typ / .zip)',
-  'Typst 编译器与 typst.ts 以 Apache-2.0 许可分发。界面图标来自\n                Lucide（ISC），界面与图标均为独立实现，不复制 typst.app\n                的图标或页面资源。Typstor 与 typst.app 无关联。':
-    'The Typst compiler and typst.ts are distributed under Apache-2.0. Interface icons are from Lucide (ISC). The interface and icons are independent implementations and do not copy icons or page assets from typst.app. Typstor is not affiliated with typst.app.',
+  'Typst 编译器与 typst.ts 以 Apache-2.0 许可分发。界面图标来自\n                Lucide（ISC），界面与图标均为独立实现，不复制 typst.app\n                的图标或页面资源。Deckle 与 typst.app 无关联。':
+    'The Typst compiler and typst.ts are distributed under Apache-2.0. Interface icons are from Lucide (ISC). The interface and icons are independent implementations and do not copy icons or page assets from typst.app. Deckle is not affiliated with typst.app.',
   'ZIP 压缩包': 'ZIP archive',
   '[watcher] 监听失败': '[watcher] failed to watch',
   '{count} 个{kind}': '{count} {kind}',
@@ -97,11 +97,11 @@ export const EN: Record<string, string> = {
   全部替换: 'Replace all',
   全项目: 'Whole project',
   关于: 'About',
-  '关于 Typstor': 'About Typstor',
+  '关于 Deckle': 'About Deckle',
   关闭: 'Close',
   关闭应用: 'Quit app',
-  '关闭应用会退出 Typstor；只关闭窗口则保留应用在后台运行。':
-    'Quitting exits Typstor; closing the window keeps the app running in the background.',
+  '关闭应用会退出 Deckle；只关闭窗口则保留应用在后台运行。':
+    'Quitting exits Deckle; closing the window keeps the app running in the background.',
   关闭按钮行为: 'Close button behavior',
   关闭窗口: 'Close window',
   关闭项目: 'Close project',
@@ -316,7 +316,7 @@ export const EN: Record<string, string> = {
   模板路径越界: 'Template path is outside the allowed folder',
   模板预览为只读模式: 'Template preview is read-only',
   正则表达式: 'Regular expression',
-  '正在启动 Typstor…': 'Starting Typstor…',
+  '正在启动 Deckle…': 'Starting Deckle…',
   '正在生成大纲…': 'Building outline…',
   '正在编译…': 'Compiling…',
   '正在读取…': 'Loading…',
@@ -344,8 +344,8 @@ export const EN: Record<string, string> = {
   '界面暂时无响应，是否等待或重新载入？':
     'The interface is not responding. Wait or reload?',
   继续等待: 'Keep waiting',
-  'Typstor 启动时遇到错误，无法继续。':
-    'Typstor could not start because of the following error.',
+  'Deckle 启动时遇到错误，无法继续。':
+    'Deckle could not start because of the following error.',
   '目标位置已存在同名文件夹：{path}':
     'A folder with the same name already exists at: {path}',
   '目的、原理、步骤、结果与讨论':

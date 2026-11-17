@@ -71,15 +71,15 @@ export default function AppShell() {
     const onQuickOpen = () => {
       if (project) setQuickOpen(true);
     };
-    window.addEventListener('typstor:quick-open', onQuickOpen);
+    window.addEventListener('deckle:quick-open', onQuickOpen);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
-      window.removeEventListener('typstor:quick-open', onQuickOpen);
+      window.removeEventListener('deckle:quick-open', onQuickOpen);
     };
   }, [project]);
 
   useEffect(() => {
-    const unsubscribe = window.typstor.project.onChanged((change) => {
+    const unsubscribe = window.deckle.project.onChanged((change) => {
       useAppStore.getState().handleWatchEvent(change);
     });
     return unsubscribe;
@@ -87,8 +87,8 @@ export default function AppShell() {
 
   useEffect(() => {
     const getEditorFilePath = () =>
-      (window as unknown as { __typstorEditorFilePath?: string })
-        .__typstorEditorFilePath ?? null;
+      (window as unknown as { __deckleEditorFilePath?: string })
+        .__deckleEditorFilePath ?? null;
 
     const onGotoLine = async (event: Event) => {
       const detail = (
@@ -141,8 +141,8 @@ export default function AppShell() {
       }
       scroll();
     };
-    window.addEventListener('typstor:goto-line', onGotoLine);
-    return () => window.removeEventListener('typstor:goto-line', onGotoLine);
+    window.addEventListener('deckle:goto-line', onGotoLine);
+    return () => window.removeEventListener('deckle:goto-line', onGotoLine);
   }, []);
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -178,7 +178,7 @@ export default function AppShell() {
           >
             T
           </div>
-          <div style={{ fontSize: 12 }}>{t('正在启动 Typstor…')}</div>
+          <div style={{ fontSize: 12 }}>{t('正在启动 Deckle…')}</div>
         </div>
       </div>
     );

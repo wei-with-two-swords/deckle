@@ -16,7 +16,7 @@ interface RecentRow {
 }
 
 function filePath(): string {
-  return path.join(app.getPath('userData'), 'typstor.db');
+  return path.join(app.getPath('userData'), 'deckle.db');
 }
 
 function migrate(handle: DatabaseSync): void {

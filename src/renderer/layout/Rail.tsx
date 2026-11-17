@@ -197,7 +197,7 @@ export default function Rail() {
           <CircleHelp size={20} strokeWidth={1.5} />
         </RailButton>
         <div
-          aria-label="Typstor"
+          aria-label="Deckle"
           style={{
             height: 158,
             paddingBottom: 12,
@@ -219,7 +219,7 @@ export default function Rail() {
               whiteSpace: 'nowrap',
             }}
           >
-            Typstor
+            Deckle
           </span>
         </div>
       </div>

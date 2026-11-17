@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { TypstorApi } from '../shared/api';
+import type { DeckleApi } from '../shared/api';
 import { CH } from '../shared/channels';
 import type {
   CompileShadow,
@@ -10,7 +10,7 @@ import type {
   WorkspaceState,
 } from '../shared/types';
 
-const api: TypstorApi & { platform: string } = {
+const api: DeckleApi & { platform: string } = {
   platform: process.platform,
   window: {
     minimize: () => ipcRenderer.invoke(CH.WIN_MINIMIZE),
@@ -162,4 +162,4 @@ const api: TypstorApi & { platform: string } = {
   },
 };
 
-contextBridge.exposeInMainWorld('typstor', api);
+contextBridge.exposeInMainWorld('deckle', api);
