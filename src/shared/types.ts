@@ -168,6 +168,8 @@ export interface Settings {
   preview: PreviewSettings;
   window: WindowBounds;
   fonts: { extraDirs: string[] };
+  /** 首次启动是否已播种内置教程项目；用户删除后不再自动重建。 */
+  tutorialSeeded: boolean;
 }
 
 export interface ProjectOpenResult {

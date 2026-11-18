@@ -27,6 +27,7 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   window: { width: 1400, height: 900, maximized: false },
   fonts: { extraDirs: [] },
+  tutorialSeeded: false,
 };
 
 let cache: Settings | null = null;

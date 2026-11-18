@@ -40,6 +40,7 @@ A local-first, offline desktop editor for [Typst](https://typst.app/) documents.
 - File tree with create / rename / delete / import / reveal-in-explorer, plus `Ctrl/⌘+P` quick open.
 - Full-text project search, document outline, and crash-recovery snapshots.
 - Four built-in templates (paper, course paper, lab report, blank) and import of custom `.zip` templates.
+- A built-in, editable Typst syntax tutorial project is created on first launch.
 - Custom font directories for CJK typesetting.
 
 ### Interface
@@ -69,8 +70,9 @@ Application data lives in `%APPDATA%\Deckle`:
 | `settings.json` | Theme, locale, editor/preview preferences, window layout |
 | `deckle.db`     | Recent projects and recovery snapshots (`node:sqlite`)   |
 | `templates/`    | Imported custom templates                                |
+| `samples/`      | The built-in Typst syntax tutorial project               |
 
-Project files themselves stay wherever you created them. A fresh install on a new machine starts with an empty project list.
+Project files themselves stay wherever you created them (the built-in tutorial lives under `samples/`). A fresh install starts with the editable tutorial project.
 
 ---
 

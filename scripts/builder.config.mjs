@@ -34,6 +34,14 @@ export const builderConfig = {
     '!node_modules/**/*',
   ],
 
+  // 内置教程以普通文件随安装包分发，首次启动复制到 userData/samples。
+  extraResources: [
+    {
+      from: 'resources/tutorial',
+      to: 'tutorial',
+    },
+  ],
+
   asar: true,
   asarUnpack: [
     '.webpack/main/native_modules/**/*',

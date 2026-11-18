@@ -8,6 +8,7 @@ import { registerProtocolHandler, registerScheme } from './protocol';
 import { attachPerfProbe, attachSmoke, prepareSmokeProject } from './smoke';
 import { createMainWindow, getMainWindow } from './window';
 import { migrateLegacyUserData } from './userDataMigration';
+import { seedTutorialProject } from './tutorial';
 
 // userData 目录随产品名变化；必须在任何数据库/设置读写之前完成迁移。
 migrateLegacyUserData();
@@ -56,6 +57,11 @@ app
     Menu.setApplicationMenu(null);
 
     initDb();
+    try {
+      await seedTutorialProject();
+    } catch (error) {
+      console.error('[deckle] tutorial seed failed:', error);
+    }
     registerProtocolHandler();
     registerIpcHandlers();
 
