@@ -16,7 +16,22 @@ export default function utilityConfig({ mode = 'production' } = {}) {
       filename: 'compile.cjs',
       libraryTarget: 'commonjs2',
     },
-    module: { rules },
+    module: {
+      rules: [
+        {
+          test: /@myriaddreamin[\\/]typst-ts-node-compiler[\\/]index-napi\.js$/,
+          use: [
+            {
+              loader: path.resolve(
+                root,
+                'scripts/native-asset-base-loader.cjs',
+              ),
+            },
+          ],
+        },
+        ...rules,
+      ],
+    },
     resolve: { extensions: ['.js', '.ts', '.json'] },
     node: { __dirname: false, __filename: false },
     ignoreWarnings: [
