@@ -1048,6 +1048,9 @@ export default function PreviewPane() {
           paddingRight: PAGE_PADDING,
           paddingBottom: PAGE_PADDING + 44,
           overflow: 'auto',
+          // 适应宽度按 clientWidth 计算；滚动条出现/消失会改变 clientWidth，
+          // 在临界宽度上形成“缩放→滚动条→再缩放”的抖动。始终预留滚动条槽位。
+          scrollbarGutter: 'stable',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -1167,7 +1170,7 @@ export default function PreviewPane() {
         }}
         onMouseLeave={() => armZoomHide()}
       >
-        <ZoomButton label={t('缩小')} onClick={() => zoomBy(-0.05)}>
+        <ZoomButton label={t('缩小')} onClick={() => zoomBy(-0.01)}>
           <Minus size={15} strokeWidth={1.5} />
         </ZoomButton>
         <button
@@ -1193,7 +1196,7 @@ export default function PreviewPane() {
         >
           {Math.round(zoom * 100)}%
         </button>
-        <ZoomButton label={t('放大')} onClick={() => zoomBy(0.05)}>
+        <ZoomButton label={t('放大')} onClick={() => zoomBy(0.01)}>
           <Plus size={15} strokeWidth={1.5} />
         </ZoomButton>
       </div>
