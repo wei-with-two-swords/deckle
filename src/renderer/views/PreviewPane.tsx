@@ -24,6 +24,7 @@ import {
   zoomFromWheel,
 } from './previewZoom';
 import { previewColors } from './previewTheme';
+import { MIN_PREVIEW_WIDTH } from '../layout/layoutMetrics';
 import { t } from '../lib/i18n';
 
 const PAGE_WIDTH_PT = 595.28;
@@ -651,7 +652,7 @@ export default function PreviewPane() {
       aria-label={t('预览')}
       style={{
         flex: 1,
-        minWidth: 0,
+        minWidth: MIN_PREVIEW_WIDTH,
         display: 'flex',
         flexDirection: 'column',
         minHeight: 0,
@@ -670,8 +671,7 @@ export default function PreviewPane() {
         {/* 左：显示模式（同步滚动、护眼、适应宽度） */}
         <div
           style={{
-            flex: 1,
-            minWidth: 0,
+            flex: '0 0 auto',
             display: 'flex',
             alignItems: 'center',
             gap: 6,

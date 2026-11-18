@@ -9,6 +9,7 @@ import Splitter from './Splitter';
 import FilesPanel from '../views/FilesPanel';
 import EditorPane from '../views/EditorPane';
 import PreviewPane from '../views/PreviewPane';
+import { MIN_EDITOR_WIDTH, MIN_PREVIEW_WIDTH } from './layoutMetrics';
 import Welcome from '../views/Welcome';
 import NewProjectDialog from '../components/NewProjectDialog';
 import SettingsDialog from '../components/SettingsDialog';
@@ -274,8 +275,14 @@ export default function AppShell() {
               onDrag={(dx) => {
                 const state = drag.current;
                 if (!state) return;
-                const minSplit = Math.max(0.2, 320 / state.available);
-                const maxSplit = Math.min(0.8, 1 - 320 / state.available);
+                const maxSplit = Math.min(
+                  0.8,
+                  1 - MIN_PREVIEW_WIDTH / state.available,
+                );
+                const minSplit = Math.min(
+                  maxSplit,
+                  Math.max(0.2, MIN_EDITOR_WIDTH / state.available),
+                );
                 const next = state.splitStart + dx / state.available;
                 setSplit(Math.max(minSplit, Math.min(maxSplit, next)));
               }}
@@ -285,7 +292,7 @@ export default function AppShell() {
             <div
               style={{
                 flex: `${1 - split} 1 0`,
-                minWidth: 0,
+                minWidth: MIN_PREVIEW_WIDTH,
                 minHeight: 0,
                 display: 'flex',
               }}
