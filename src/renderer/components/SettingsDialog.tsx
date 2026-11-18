@@ -12,7 +12,7 @@ import {
   TextField,
 } from '@mui/material';
 import type { AppInfo, Locale, ThemeMode } from '../../shared/types';
-import { LOCALE_OPTIONS } from '../../shared/i18n';
+import { DEFAULT_LOCALE, LOCALE_OPTIONS } from '../../shared/i18n';
 import type { SettingsSection } from '../store/appStore';
 import { useAppStore } from '../store/appStore';
 import { t } from '../lib/i18n';
@@ -195,7 +195,7 @@ export default function SettingsDialog() {
           <Row label={t('界面语言')}>
             <Select
               size="small"
-              value={settings?.locale ?? 'zh-CN'}
+              value={settings?.locale ?? DEFAULT_LOCALE}
               onChange={(event) =>
                 void patchSettings({ locale: event.target.value as Locale })
               }

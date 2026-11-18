@@ -6,7 +6,7 @@ A local-first, offline desktop editor for [Typst](https://typst.app/) documents.
 
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-blue)
 ![Electron](https://img.shields.io/badge/Electron-45.2.3-2F3241)
-![Node](https://img.shields.io/badge/node-%E2%89%A522-339933)
+![Node](https://img.shields.io/badge/node-%E2%89%A524-339933)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 
 > Deckle is an independent project and is **not affiliated with Typst GmbH**. See [Third-Party Notices](./THIRD_PARTY_NOTICES.md) for bundled open-source components.
@@ -21,7 +21,7 @@ A local-first, offline desktop editor for [Typst](https://typst.app/) documents.
 - Formatting shortcuts for bold, italic, underline, headings and math.
 - Per-file undo history; switching files keeps unsaved buffers intact.
 - **Autosave** 300 ms after typing, plus a global `Ctrl/⌘+S` that works from any pane.
-- External file changes are watched with `chokidar`: clean files reload automatically, dirty files raise a conflict dialog (reload / keep local / save a copy).
+- External file changes are watched with `chokidar`: clean files reload automatically; dirty files raise a conflict dialog (reload the disk version / overwrite with local edits / cancel).
 - Word count for the current file and the whole project.
 
 ### Compilation and preview
@@ -45,8 +45,8 @@ A local-first, offline desktop editor for [Typst](https://typst.app/) documents.
 ### Interface
 
 - Frameless window with a custom title bar, single-instance launch, and persistent layout (panel widths, split ratio, zoom, last opened file).
-- Light / dark themes, adjustable editor typography, and a bilingual UI (简体中文 / English) switchable in Settings.
-- All data stays on the machine: no login, no telemetry, no cloud sync and no network access. Editing, compiling and exporting are fully offline — see the [Privacy Policy](./PRIVACY.md).
+- Light / dark themes, adjustable editor typography, and a bilingual UI (English / 简体中文), English by default, switchable in Settings.
+- All data stays on the machine: no login, no telemetry, no cloud sync, and the app does not send your documents or usage data anywhere. Editing, compiling and exporting work fully offline — see the [Privacy Policy](./PRIVACY.md).
 
 ---
 
@@ -58,9 +58,9 @@ Download `Deckle-<version> Setup.exe` from [Releases](https://github.com/wei-wit
 
 - Desktop and Start Menu shortcuts are created automatically.
 - Uninstalling keeps your settings and project records.
-- The installer is not code-signed, so SmartScreen may warn about an unknown publisher.
+- Release builds are not code-signed yet, so SmartScreen may warn about an unknown publisher.
 
-**Free and open source.** Deckle is released under the Apache License 2.0. There is no trial period, licence key or activation step — download it and use it. If you build from source, see [Contributing](./CONTRIBUTING.md); if Deckle is useful to you, a star on the repository helps others find it.
+**Free and open source.** Deckle is released under the Apache License 2.0. There is no trial period, license key or activation step — download it and use it. If you build from source, see [Contributing](./CONTRIBUTING.md); if Deckle is useful to you, a star on the repository helps others find it.
 
 Application data lives in `%APPDATA%\Deckle`:
 
@@ -85,7 +85,7 @@ npm test         # unit tests
 npm run dist     # Windows installer
 ```
 
-The current desktop app is fully covered by Apache-2.0. Like many open-core projects, future optional services (for example hosted collaboration or team administration) may be offered under separate terms; that would not reduce the rights you already have to this repository's code. See [CONTRIBUTING.md](./CONTRIBUTING.md) if you want to help.
+All source code in this repository is licensed under Apache-2.0, and there are currently no closed-source components in the desktop app. Like many open-core projects, future optional services (for example team template hosting or enterprise deployment) may be offered under separate terms; that would not reduce the rights you already have to this repository's code. See [CONTRIBUTING.md](./CONTRIBUTING.md) if you want to help.
 
 ---
 
@@ -126,9 +126,9 @@ Security hardening is applied through `electronFuses`: `runAsNode` and Node CLI 
 
 - **Windows x64 only.** The builder config produces a single NSIS target; macOS and Linux builds are not configured or verified.
 - **No in-app auto-update yet.** The `.blockmap` is generated, but no updater is wired in. Upgrading currently means installing a newer `Setup.exe`.
-- **No code signing.** Windows SmartScreen may show an "unknown publisher" warning.
+- **Release builds are currently unsigned.** Windows SmartScreen may show an "unknown publisher" warning.
 - **Synchronized scrolling is approximate.** `typst.ts` exposes `source_span(path)` for page → source lookup only, so editor → preview mapping uses a line-number ratio rather than exact source spans.
-- By design there is no account, cloud sync, collaboration, Git integration, AI writing assistance, or web/mobile version.
+- The 1.0 release does not include accounts, cloud sync, collaboration, Git integration, AI writing assistance, or a web/mobile version.
 
 ---
 
@@ -142,15 +142,16 @@ Bug reports, feature requests, documentation fixes and pull requests are welcome
 
 **Deckle is free and open source, licensed under the Apache License 2.0.** Copyright © 2026 Wei.
 
-You may use, modify and redistribute the code, including commercially, provided you keep the copyright and attribution notices and comply with the license. The license does not grant rights to the Deckle name or logo — see the trademark policy.
+You may use, modify and redistribute the code, including commercially, provided you keep the copyright and attribution notices and comply with the license. This section is a summary, not a substitute for the license text. The license does not grant rights to the Deckle name or logo — see the trademark policy.
 
-| Document                                           | Covers                                             |
-| -------------------------------------------------- | -------------------------------------------------- |
-| [LICENSE](./LICENSE)                               | Apache License 2.0 — full text                     |
-| [NOTICE](./NOTICE)                                 | Copyright, attribution and trademark notice        |
-| [TRADEMARK.md](./TRADEMARK.md)                     | Use of the Deckle name, wordmark and icon          |
-| [CONTRIBUTING.md](./CONTRIBUTING.md)               | Build instructions, PRs and contribution licensing |
-| [PRIVACY.md](./PRIVACY.md)                         | Privacy Policy — no accounts, telemetry or network |
-| [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) | Bundled open-source components and their licenses  |
+| Document                                               | Covers                                              |
+| ------------------------------------------------------ | --------------------------------------------------- |
+| [LICENSE](./LICENSE)                                   | Apache License 2.0 — full text                      |
+| [NOTICE](./NOTICE)                                     | Copyright, attribution and trademark notice         |
+| [TRADEMARK.md](./TRADEMARK.md)                         | Use of the Deckle name, wordmark and icon           |
+| [CONTRIBUTING.md](./CONTRIBUTING.md)                   | Build instructions, PRs and contribution licensing  |
+| [PRIVACY.md](./PRIVACY.md)                             | Local-only data handling; no accounts or telemetry  |
+| [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)     | Bundled components and license references           |
+| [THIRD_PARTY_LICENSES.txt](./THIRD_PARTY_LICENSES.txt) | Generated license texts for production dependencies |
 
-Deckle is an independent project and is not affiliated with Typst GmbH. Bundled third-party components keep their own licenses: Typst / typst.ts and `codemirror-lang-typst` are Apache-2.0; React, MUI, CodeMirror, Electron and friends are MIT/ISC; the Inter UI font is OFL-1.1.
+Deckle is an independent project and is not affiliated with Typst GmbH. Bundled third-party components keep their own licenses: Typst / typst.ts and `codemirror-lang-typst` are Apache-2.0; React, MUI, CodeMirror, Electron and friends are MIT/ISC. The UI uses system fonts (Inter is used when installed but is not bundled).

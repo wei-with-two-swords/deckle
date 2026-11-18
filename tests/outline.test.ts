@@ -74,7 +74,7 @@ describe('parseOutline', () => {
 
   it('caption 缺失时给出占位文案', () => {
     const model = parseOutline('#figure(image("x.png"))');
-    expect(model.figures[0].caption).toBe('（无图注）');
+    expect(model.figures[0].caption).toBe('(no caption)');
   });
 
   it('字符串里的括号不会影响配对', () => {

@@ -149,7 +149,7 @@ v0.1 只服务**单机、单用户**，不做账号、登录、成员、权限�
 ### 6.4 异常
 
 - 项目被移动：最近项目置灰，点击提示“重新定位”。
-- 外部编辑冲突：对话框三选一（重新加载 / 保留本地 / 另存副本）。
+- 外部编辑冲突：对话框三选一（重新载入磁盘版本 / 覆盖保存 / 取消）。
 - 编译错误：旧预览保留，错误列表更新，状态 pill 变红。
 - 崩溃重启：检测到快照，提示恢复（P1 完整 UI，M4 起记录）。
 
@@ -187,7 +187,7 @@ v0.1 只服务**单机、单用户**，不做账号、登录、成员、权限�
 - Deckle 是独立项目，**与 Typst GmbH 无关联**；关于页与 NOTICE 中声明。
 - 不使用 Typst 的名称作为产品名、不使用其 logo/字标；图标全部自绘或使用 ISC/MIT 许可的通用图标；不逐字节复制 typst.app 的 SVG 路径或 CSS/JS 资源。界面布局与设计变量作为视觉参考，代码与资产均为独立实现。
 - 界面布局与颜色数值作为设计参考；不复制 typst.app 的 CSS/JS/HTML 源码，不逐字节复制其 SVG path。
-- 依赖许可：Typst/typst.ts（Apache-2.0）、CodeMirror（MIT）、React（MIT）、MUI（MIT）、Inter（OFL-1.1）、lucide（ISC）。安装包内附 `THIRD_PARTY_NOTICES.md`。
+- 依赖许可：Typst/typst.ts（Apache-2.0）、CodeMirror（MIT）、React（MIT）、MUI（MIT）、lucide（ISC）。界面使用系统字体，不随包分发字体资产。安装包内附 `THIRD_PARTY_NOTICES.md`。
 
 ## 10. 成功指标（上线后）
 

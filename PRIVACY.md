@@ -16,10 +16,12 @@ delete them at any time; uninstalling keeps them unless you remove that folder
 yourself.
 
 **Network access.** The current 1.0 release performs editing, compilation,
-preview and PDF export entirely offline and makes no network requests. There
-is no licence activation, no update check and no remote font or template
-service. If a future release adds an optional online feature, this policy will
-be updated and the feature will be opt-in where required.
+preview and PDF export entirely offline and does not contact any server on its
+own. There is no licence activation, no update check and no remote font or
+template service. If you choose a link that opens an external site, that
+request is handled by your browser, not by Deckle. If a future release adds an
+optional online feature, this policy will be updated and the feature will be
+opt-in where required.
 
 **Third-party sites.** Downloading a release from GitHub is subject to
 GitHub's own privacy policy. Deckle itself does not contact GitHub.
@@ -41,7 +43,8 @@ Deckle 是一款本地优先的桌面应用，不需要账号，也不包含遥�
 卸载应用默认会保留这些数据，除非你自行删除该目录。
 
 **网络访问。** 当前 1.0 版本的编辑、编译、预览与 PDF 导出全部离线完成，
-不发起任何网络请求；没有授权激活、更新检查，也没有远程字体或模板服务。
+不会自行连接任何服务器；没有授权激活、更新检查，也没有远程字体或模板服务。
+如果你主动打开外部链接，该请求由浏览器处理，而不是由 Deckle 发起。
 如果未来版本加入可选的在线功能，我们会更新本政策，并在需要时提供明确的
 选择开关。
 

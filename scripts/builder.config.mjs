@@ -29,6 +29,7 @@ export const builderConfig = {
     'LICENSE',
     'NOTICE',
     'THIRD_PARTY_NOTICES.md',
+    'THIRD_PARTY_LICENSES.txt',
     '!**/*.map',
     '!node_modules/**/*',
   ],
@@ -75,8 +76,8 @@ export const builderConfig = {
     createDesktopShortcut: true,
     createStartMenuShortcut: true,
     shortcutName: 'Deckle',
-    // 简体中文安装界面（LCID 2052）。
-    language: '2052',
+    // English installer UI (LCID 1033).
+    language: '1033',
     // 覆盖默认的「关闭运行中应用」检测：只处理安装目录内的进程，
     // 避免全局按 deckle.exe 进程名误伤旧 Squirrel 版 / 绿色版后弹「无法关闭」。
     // 文件位于 buildResources（assets/installer.nsh）。

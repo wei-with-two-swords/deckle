@@ -7,11 +7,11 @@
  */
 import type { Locale } from './types';
 
-export const DEFAULT_LOCALE: Locale = 'zh-CN';
+export const DEFAULT_LOCALE: Locale = 'en-US';
 
 export const LOCALE_OPTIONS: { value: Locale; label: string }[] = [
-  { value: 'zh-CN', label: '简体中文' },
   { value: 'en-US', label: 'English' },
+  { value: 'zh-CN', label: '简体中文' },
 ];
 
 /** 英文词条：key 为界面上的中文原文，value 为英文译文。 */

@@ -31,9 +31,9 @@ describe('extractTemplateZip', () => {
   });
 
   it('拒绝路径逃逸的条目名', () => {
-    expect(() => safeEntryName('../evil.txt')).toThrow(/非法路径/);
-    expect(() => safeEntryName('/abs/evil.txt')).toThrow(/非法路径/);
-    expect(() => safeEntryName('a/../../evil.txt')).toThrow(/非法路径/);
+    expect(() => safeEntryName('../evil.txt')).toThrow(/invalid path/);
+    expect(() => safeEntryName('/abs/evil.txt')).toThrow(/invalid path/);
+    expect(() => safeEntryName('a/../../evil.txt')).toThrow(/invalid path/);
     expect(safeEntryName('assets/logo.png')).toBe('assets/logo.png');
   });
 });

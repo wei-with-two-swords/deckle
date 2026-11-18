@@ -9,14 +9,14 @@ Deckle 的源码以 Apache License 2.0 开源。该许可证授予代码的版�
 
 ## Marks / 商标范围
 
-The following are trademarks of Wei (the "Deckle marks"):
+The following are the project's trademarks (registered or unregistered):
 
 - The product name **Deckle**;
 - The **Deckle** wordmark as it appears in the app and on this project's pages;
 - The blue rounded-square icon with the white **D** (and the dot), including
   the files in `assets/icon*.png`, `assets/icon.ico` and `assets/icon-master.svg`.
 
-以下标识为 Wei 的商标（“Deckle 标识”）：
+以下标识为 Wei 的项目商标（无论是否注册）：
 
 - 产品名称 **Deckle**；
 - 应用内及项目页面使用的 **Deckle** 字标；

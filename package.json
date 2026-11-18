@@ -3,7 +3,7 @@
   "productName": "Deckle",
   "version": "1.0.0",
   "private": true,
-  "description": "Deckle — 桌面版 Typst 论文编辑器",
+  "description": "Deckle — a desktop Typst paper editor",
   "keywords": [
     "typst",
     "editor",
@@ -35,6 +35,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "oxlint && oxfmt --check",
     "lint:fix": "oxlint --fix && oxfmt --write",
+    "licenses": "node scripts/collect-licenses.mjs",
     "test": "vitest run",
     "spike": "node scripts/spike-compile.mjs",
     "perf:500": "node scripts/perf-500.mjs"

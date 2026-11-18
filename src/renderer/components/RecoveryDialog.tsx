@@ -10,14 +10,14 @@ import {
 } from '@mui/material';
 
 import { useAppStore } from '../store/appStore';
-import { t } from '../lib/i18n';
+import { t, useLocale } from '../lib/i18n';
 
 function basename(path: string): string {
   return path.split(/[\\/]/).pop() ?? path;
 }
 
-function formatTime(value: number): string {
-  return new Date(value).toLocaleString('zh-CN', {
+function formatTime(value: number, locale: string): string {
+  return new Date(value).toLocaleString(locale, {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
@@ -30,6 +30,7 @@ export default function RecoveryDialog() {
   const restoreSnapshot = useAppStore((state) => state.restoreSnapshot);
   const dismissRecovery = useAppStore((state) => state.dismissRecovery);
   const [busy, setBusy] = useState(false);
+  const locale = useLocale();
 
   if (!recovery || recovery.length === 0) return null;
 
@@ -94,7 +95,7 @@ export default function RecoveryDialog() {
                   <span
                     style={{ fontSize: 11, color: 'var(--text-secondary)' }}
                   >
-                    {formatTime(item.createdAt)}
+                    {formatTime(item.createdAt, locale)}
                   </span>
                   {!item.exists && (
                     <span style={{ fontSize: 11, color: 'var(--critical)' }}>

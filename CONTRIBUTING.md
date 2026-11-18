@@ -9,15 +9,15 @@ Requirements: Windows 10/11 x64, Node.js 24+, npm.
 
 ```bash
 npm install
-npm start        # webpack dev server + Electron, reloads on change
+npm start        # webpack watch + Electron, reloads on change
 npm run typecheck
 npm test
 npm run lint
 ```
 
 `npm run dist` builds the Windows NSIS installer; `npm run package` produces an
-unpacked build in `out/`. Native dependencies are used by the compiler, so stop
-any running Electron instance before packaging.
+unpacked build under `dist/win-unpacked`. Native dependencies are used by the
+compiler, so stop any running Electron instance before packaging.
 
 ## Pull requests
 

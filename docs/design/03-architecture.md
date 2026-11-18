@@ -489,7 +489,7 @@ async function writeAtomic(
   - 重新载入磁盘版本：丢弃本地修改，`revision + 1` 重建编辑器；
   - 覆盖保存：调用 `fs:writeFile` 的 `force: true`，跳过 mtime 校验并写回本地内容。
 - `fs:writeFile` 参数为 `{path, content, expectedMtimeMs?, force?}`；`force` 仅由冲突对话框的“覆盖保存”传入。
-- 后续（M4）：watcher 100ms 去抖、合并同路径事件、干净时自动重载、删除事件处理；另存副本作为冲突对话框第四项。
+- 后续（M4）：watcher 100ms 去抖、合并同路径事件、干净时自动重载、删除事件处理；冲突对话框提供重新载入 / 覆盖保存 / 取消三项。
 - 编辑器状态按文件缓存（最多 30 个）：切换回来时若内容未变，复用 `EditorState`，保留撤销历史与光标；磁盘重载后内容变化则丢弃缓存。
 - 外部监听（M4 已落地）：`chokidar` 监听项目根（`ignoreInitial`、`awaitWriteFinish` 120ms、忽略 `.deckle/.git/node_modules/out/.webpack/tmp` 与 `.swp`），事件以 `{kind:'tree', event, path}` 经 `project:watch-event` 发到渲染层；打开/新建项目时启动，关闭项目时 `project:stopWatch`。渲染层对活动文件读盘比对：内容相同只更新 mtime（抑制自身保存回声）；不同且干净则重建编辑器（`revision+1`），脏则复用冲突对话框。文件树事件只重载受影响父目录，删除时清理对应子树展开状态。
 

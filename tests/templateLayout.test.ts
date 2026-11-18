@@ -44,7 +44,9 @@ describe('resolveTemplateRoot', () => {
   it('没有入口时报错', async () => {
     const dir = await tempRoot();
     await fs.writeFile(path.join(dir, 'readme.txt'), 'no typst');
-    await expect(resolveTemplateRoot(dir)).rejects.toThrow(/没有找到入口/);
+    await expect(resolveTemplateRoot(dir)).rejects.toThrow(
+      /No entry file found/,
+    );
     await fs.rm(dir, { recursive: true, force: true });
   });
 });

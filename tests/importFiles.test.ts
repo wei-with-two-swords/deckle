@@ -92,7 +92,7 @@ describe('importProjectFiles', () => {
     // 即使该目录本身有权访问，也不允许写进别的项目/目录。
     allowRoot(temp);
     await expect(importProjectFiles(projectDir, sourceDir)).rejects.toThrow(
-      '只能导入到当前项目内的文件夹',
+      'Can only import into a folder inside the current project',
     );
   });
 
@@ -108,7 +108,7 @@ describe('importProjectFiles', () => {
 
     expect(result?.imported).toEqual([]);
     expect(result?.failed).toEqual([
-      { name: 'note.typ', reason: '文件已在目标文件夹中' },
+      { name: 'note.typ', reason: 'File is already in the destination folder' },
     ]);
   });
 });

@@ -6,7 +6,7 @@
 
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-blue)
 ![Electron](https://img.shields.io/badge/Electron-45.2.3-2F3241)
-![Node](https://img.shields.io/badge/node-%E2%89%A522-339933)
+![Node](https://img.shields.io/badge/node-%E2%89%A524-339933)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 
 > Deckle 是独立项目，**与 Typst GmbH 无关联**。打包的开源组件清单见 [第三方声明](./THIRD_PARTY_NOTICES.md)。
@@ -21,7 +21,7 @@
 - 格式化快捷键：粗体、斜体、下划线、标题、数学。
 - 每个文件独立撤销栈，切换文件不丢未保存内容。
 - **自动保存**：停止输入 300 ms 后保存；`Ctrl/⌘+S` 为全局快捷键，在编辑器、预览区、文件面板都能触发。
-- `chokidar` 监听外部修改：干净文件自动重载，有改动的文件弹出冲突对话框（重新加载 / 保留本地 / 另存副本）。
+- `chokidar` 监听外部修改：干净文件自动重载，有改动的文件弹出冲突对话框（重新载入磁盘版本 / 覆盖保存 / 取消）。
 - 当前文件字数与项目总字数统计。
 
 ### 编译与预览
@@ -45,8 +45,8 @@
 ### 界面
 
 - 无边框窗口 + 自定义标题栏，单实例启动；布局（面板宽度、分栏比例、缩放、上次打开的文件）自动保存。
-- 明 / 暗主题、编辑器字号与行高可调；界面**中英双语**，在设置里切换。
-- 所有数据只留在本机：无登录、无遥测、无云同步，也不发起任何网络请求。编辑、编译、导出完全离线，详见 [隐私政策](./PRIVACY.md)。
+- 明 / 暗主题、编辑器字号与行高可调；界面**中英双语**，默认英文，可在设置里切换。
+- 所有数据只留在本机：无登录、无遥测、无云同步，应用不会把你的文档或使用数据发送到任何地方。编辑、编译、导出完全离线，详见 [隐私政策](./PRIVACY.md)。
 
 ---
 
@@ -58,7 +58,7 @@
 
 - 自动创建桌面与开始菜单快捷方式。
 - 卸载时保留设置与项目记录。
-- 安装包未做代码签名，SmartScreen 可能提示「未知发布者」。
+- 当前发行版尚未做代码签名，SmartScreen 可能提示「未知发布者」。
 
 **免费开源。** Deckle 以 Apache License 2.0 发布，没有试用期、激活码或授权步骤，下载即可使用。想从源码构建请看 [贡献指南](./CONTRIBUTING.md)；如果 Deckle 对你有帮助，欢迎给仓库点一个 Star，让更多人发现它。
 
@@ -85,7 +85,7 @@ npm test         # 单元测试
 npm run dist     # Windows 安装包
 ```
 
-当前桌面应用的全部代码均适用 Apache-2.0。与许多 open-core 项目一样，未来可选的在线服务（例如托管协作、团队管理）可能采用单独条款提供；这不会削减你已经获得的、对本仓库代码的权利。想参与贡献请看 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+本仓库全部源代码以 Apache-2.0 授权，当前桌面应用没有闭源组件。与许多 open-core 项目一样，未来可选的在线服务（例如团队模板托管、企业部署）可能采用单独条款提供；这不会削减你已经获得的、对本仓库代码的权利。想参与贡献请看 [CONTRIBUTING.md](./CONTRIBUTING.md)。
 
 ---
 
@@ -126,9 +126,9 @@ npm run dist     # Windows 安装包
 
 - **仅 Windows x64**：构建配置只有一个 NSIS target，macOS / Linux 未配置、未验证。
 - **暂无应用内自动更新**：已生成 `.blockmap`，但没有接入更新器；升级目前是安装新版 `Setup.exe`。
-- **未做代码签名**：SmartScreen 可能提示「未知发布者」。
+- **当前发行版未做代码签名**：SmartScreen 可能提示「未知发布者」。
 - **同步滚动是近似映射**：`typst.ts` 只提供页面 → 源码的 `source_span(path)`，因此编辑器 → 预览采用行号比例估算，不是精确的源码位置。
-- 按设计取舍，不做账号、云同步、协作、Git 集成、AI 写作、Web 版与移动端。
+- 1.0 版本不包含账号、云同步、协作、Git 集成、AI 写作、Web 版与移动端。
 
 ---
 
@@ -142,15 +142,16 @@ npm run dist     # Windows 安装包
 
 **Deckle 是免费开源软件，采用 Apache License 2.0。** Copyright © 2026 Wei。
 
-你可以使用、修改与再分发代码，包括商业用途，但须保留版权与署名声明并遵守许可证条款。许可证不授予 Deckle 名称与图标的使用权，详见商标政策。
+你可以使用、修改与再分发代码，包括商业用途，但须保留版权与署名声明并遵守许可证条款。本节只是摘要，具体以许可证原文为准。许可证不授予 Deckle 名称与图标的使用权，详见商标政策。
 
-| 文档                                               | 内容                                 |
-| -------------------------------------------------- | ------------------------------------ |
-| [LICENSE](./LICENSE)                               | Apache License 2.0 全文              |
-| [NOTICE](./NOTICE)                                 | 版权、署名与商标声明                 |
-| [TRADEMARK.md](./TRADEMARK.md)                     | Deckle 名称、字标与图标的使用规则    |
-| [CONTRIBUTING.md](./CONTRIBUTING.md)               | 构建方式、PR 要求与贡献许可          |
-| [PRIVACY.md](./PRIVACY.md)                         | 隐私政策：无账号、无遥测、无网络请求 |
-| [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) | 打包的开源组件及其许可证             |
+| 文档                                                   | 内容                                 |
+| ------------------------------------------------------ | ------------------------------------ |
+| [LICENSE](./LICENSE)                                   | Apache License 2.0 全文              |
+| [NOTICE](./NOTICE)                                     | 版权、署名与商标声明                 |
+| [TRADEMARK.md](./TRADEMARK.md)                         | Deckle 名称、字标与图标的使用规则    |
+| [CONTRIBUTING.md](./CONTRIBUTING.md)                   | 构建方式、PR 要求与贡献许可          |
+| [PRIVACY.md](./PRIVACY.md)                             | 数据仅存本机；无账号、无遥测         |
+| [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)     | 打包的开源组件与许可证信息           |
+| [THIRD_PARTY_LICENSES.txt](./THIRD_PARTY_LICENSES.txt) | 生产依赖的完整许可证文本（自动生成） |
 
-打包的第三方组件仍适用各自许可证：Typst / typst.ts、`codemirror-lang-typst` 为 Apache-2.0；React、MUI、CodeMirror、Electron 等为 MIT / ISC；Inter 界面字体为 OFL-1.1。
+打包的第三方组件仍适用各自许可证：Typst / typst.ts、`codemirror-lang-typst` 为 Apache-2.0；React、MUI、CodeMirror、Electron 等为 MIT / ISC。界面使用系统字体（仅在系统已安装时使用 Inter，不随应用打包）。

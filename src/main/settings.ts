@@ -6,7 +6,7 @@ import type { Settings } from '../shared/types';
 export const DEFAULT_SETTINGS: Settings = {
   version: 1,
   theme: 'light',
-  locale: 'zh-CN',
+  locale: 'en-US',
   closeAction: 'ask',
   lastFolder: null,
   lastProject: null,
