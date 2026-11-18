@@ -229,6 +229,9 @@ export default function PreviewPane() {
   );
   /** 缩放控件仅在 Ctrl/⌘+滚轮缩放时显隐：悬停时保持，离开后延时隐藏。 */
   const [showZoom, setShowZoom] = useState(false);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  /** 宽工具栏时页码组绝对居中；窄工具栏保持 flex 排布，避免与两侧按钮重叠。 */
+  const [centerPageNav, setCenterPageNav] = useState(false);
   const zoomHideTimer = useRef<number | null>(null);
   const armZoomHide = useCallback(() => {
     if (zoomHideTimer.current !== null) {
@@ -587,6 +590,56 @@ export default function PreviewPane() {
     };
   }, [computeCurrentPage]);
 
+  // 工具栏页码组：宽度足够时相对整个工具栏绝对居中；否则参与 flex 排布，
+  // 宁可略偏也不与两侧按钮重叠。阈值按左右组实际宽度计算，避免写死
+  // 480px 后在中等宽度下仍然覆盖左侧按钮。页码组自身宽度基本固定
+  // （约 160–180px），预留 180px，避免用会随 flex 拉伸的测量值造成死锁。
+  useEffect(() => {
+    const toolbar = toolbarRef.current;
+    if (!toolbar) return;
+    const update = () => {
+      const left = toolbar.firstElementChild as HTMLElement | null;
+      const right = toolbar.lastElementChild as HTMLElement | null;
+      if (!left || !right) return;
+      const sideWidth = Math.max(
+        left.getBoundingClientRect().width,
+        right.getBoundingClientRect().width,
+      );
+      const required = 180 + sideWidth * 2 + 16;
+      setCenterPageNav(toolbar.clientWidth >= required);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(toolbar);
+    return () => observer.disconnect();
+  }, []);
+
+  // 宽工具栏的后置校验：页码组必须与整个工具栏中心重合。布局一旦被
+  // 无意改动（例如左右组再次等分或某一侧 flex 变化），开发时会留下明确
+  // 的告警，而不是只表现为“看起来有点歪”。
+  useEffect(() => {
+    if (!centerPageNav) return;
+    const toolbar = toolbarRef.current;
+    if (!toolbar) return;
+    const frame = requestAnimationFrame(() => {
+      const nav = toolbar.querySelector<HTMLElement>('[data-preview-page-nav]');
+      if (!nav) return;
+      const toolbarRect = toolbar.getBoundingClientRect();
+      const navRect = nav.getBoundingClientRect();
+      const offset =
+        navRect.left +
+        navRect.width / 2 -
+        (toolbarRect.left + toolbarRect.width / 2);
+      if (Math.abs(offset) > 1) {
+        console.warn('[preview-layout] page navigation is off-center', {
+          offset,
+          toolbarWidth: toolbarRect.width,
+        });
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [centerPageNav, pageSizes, zoom]);
+
   // 页面数量或缩放变化后重新计算当前页（上一渲染 effect 已重建 DOM）。
   useEffect(() => {
     computeCurrentPage();
@@ -660,12 +713,15 @@ export default function PreviewPane() {
       }}
     >
       <div
+        ref={toolbarRef}
+        data-preview-toolbar="true"
         style={{
           height: 30,
           flex: 'none',
           display: 'flex',
           alignItems: 'center',
           gap: 8,
+          position: 'relative',
         }}
       >
         {/* 左：显示模式（同步滚动、护眼、适应宽度） */}
@@ -751,9 +807,30 @@ export default function PreviewPane() {
           </ToolGroup>
         </div>
 
-        {/* 中：页码导航 */}
+        {/* 中：页码导航。必须占据剩余空间才能居中；改成 flex:none 会紧贴
+            左侧模式按钮组，是之前“页码控件靠左”的回归原因。 */}
         <div
-          style={{ flex: 'none', display: 'flex', justifyContent: 'center' }}
+          data-preview-page-nav="true"
+          style={
+            centerPageNav
+              ? {
+                  position: 'absolute',
+                  left: '50%',
+                  top: 0,
+                  height: 30,
+                  transform: 'translateX(-50%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 1,
+                }
+              : {
+                  flex: 1,
+                  minWidth: 0,
+                  display: 'flex',
+                  justifyContent: 'center',
+                }
+          }
         >
           {totalPages > 0 && (
             <div
@@ -857,8 +934,9 @@ export default function PreviewPane() {
         {/* 右：编译状态 + 导出 */}
         <div
           style={{
-            flex: 1,
-            minWidth: 0,
+            // 右侧固定内容宽度；页码组绝对居中时靠 auto margin 贴右。
+            flex: '0 0 auto',
+            marginLeft: 'auto',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end',
@@ -1053,7 +1131,10 @@ export default function PreviewPane() {
           scrollbarGutter: 'stable',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
+          // 页面容器自己负责居中：比视口窄时 margin:auto 居中；比视口宽时
+          // 宽度取 max-content、margin 归零，左边缘可见且可横向滚动，
+          // 不会被 flex 居中裁掉。
+          alignItems: 'flex-start',
           gap: PAGE_GAP,
         }}
       >
@@ -1064,7 +1145,9 @@ export default function PreviewPane() {
             flexDirection: 'column',
             alignItems: 'center',
             gap: PAGE_GAP,
-            width: '100%',
+            width: 'max-content',
+            minWidth: '100%',
+            margin: '0 auto',
           }}
         />
 
@@ -1077,6 +1160,7 @@ export default function PreviewPane() {
               color: 'var(--text-critical)',
               fontSize: 11,
               boxShadow: 'var(--effect-shadow-1)',
+              alignSelf: 'center',
             }}
           >
             {renderError}
@@ -1089,6 +1173,7 @@ export default function PreviewPane() {
               width: placeholderWidth,
               height: placeholderHeight,
               flex: 'none',
+              margin: '0 auto',
               background: colors.paper,
               boxShadow: 'var(--effect-shadow-page)',
               borderRadius: 1,

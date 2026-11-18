@@ -408,6 +408,30 @@ async function dumpDom(win: BrowserWindow): Promise<void> {
   `);
   console.log('[smoke:preview]', JSON.stringify(preview));
 
+  const layout = await win.webContents.executeJavaScript(`
+    (() => {
+      const toolbar = document.querySelector('[data-preview-toolbar]');
+      const nav = document.querySelector('[data-preview-page-nav]');
+      if (!toolbar || !nav) return { skip: true };
+      const toolbarRect = toolbar.getBoundingClientRect();
+      const navRect = nav.getBoundingClientRect();
+      return {
+        toolbarWidth: Math.round(toolbarRect.width),
+        navWidth: Math.round(navRect.width),
+        navCenterOffset: Math.round(
+          navRect.left + navRect.width / 2 - (toolbarRect.left + toolbarRect.width / 2),
+        ),
+        navPosition: getComputedStyle(nav).position,
+      };
+    })()
+  `);
+  console.log('[smoke:layout]', JSON.stringify(layout));
+  if (layout.skip !== true && Math.abs(layout.navCenterOffset) > 1) {
+    throw new Error(
+      `[smoke:layout] preview page nav drifted by ${layout.navCenterOffset}px`,
+    );
+  }
+
   const lint = await win.webContents.executeJavaScript(`
     (async () => {
       const view = window.__deckleEditor;
